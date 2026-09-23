@@ -14,9 +14,9 @@
    * （Reply To に {{email}} を指定しておくと、届いたメールからそのまま返信できます）
    */
   var EMAILJS = {
-    publicKey:  "",
-    serviceId:  "",
-    templateId: ""
+    publicKey:  "5X817nnLC3qenuVtC",
+    serviceId:  "service_rwf3ey8",
+    templateId: "template_w407ihr"
   };
 
   var form = document.getElementById("contact-form");
