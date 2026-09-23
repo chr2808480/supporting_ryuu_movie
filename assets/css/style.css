@@ -426,6 +426,43 @@ code {
 .faq.is-sm summary { padding: .58rem 0; font-size: .82rem; gap: .45rem; line-height: 1.6; }
 .faq.is-sm summary::before { font-size: .8em; }
 .faq.is-sm details p { font-size: .78rem; line-height: 1.75; margin-bottom: .8rem; padding-left: 1.2rem; }
+/* --------------------------------------------------------- contact form */
+.contact-form {
+  display: grid; gap: 1.1rem; max-width: 36rem;
+  padding: 1.6rem 1.5rem;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg);
+}
+.cf-field { display: grid; gap: .35rem; }
+.cf-field label { font-size: .85rem; font-weight: 700; color: var(--ink-mute); }
+.cf-req, .cf-opt {
+  margin-left: .4rem; padding: 0 .5rem; border-radius: 999px;
+  font-size: .68rem; font-weight: 700; vertical-align: 1px;
+}
+.cf-req { color: var(--red); border: 1px solid rgba(255,77,94,.5); }
+.cf-opt { color: var(--ink-faint); border: 1px solid var(--line); }
+
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+  width: 100%; font: inherit; font-size: 1rem; /* 16px 未満だと iOS が入力時に拡大する */
+  line-height: 1.6; color: var(--ink);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  padding: .6rem .8rem;
+  transition: border-color .18s;
+}
+.contact-form textarea { resize: vertical; min-height: 9rem; }
+.contact-form input:focus,
+.contact-form select:focus,
+.contact-form textarea:focus { border-color: var(--red); }
+
+.cf-submit { justify-self: start; border: 0; cursor: pointer; font-family: inherit; }
+.cf-submit:disabled { opacity: .55; cursor: wait; transform: none; }
+
+.cf-status { margin: 0; font-weight: 700; color: var(--ink-mute); }
+.cf-status:empty { display: none; }
+.cf-status.is-ok { color: var(--ink); }
+.cf-status.is-error { color: var(--red); }
+.cf-note { margin: 0; font-size: .74rem; color: var(--ink-faint); }
 
 /* --------------------------------------------------------- about site */
 .about-site { margin: 0; padding-left: 1.2rem; display: grid; gap: .7rem; }
