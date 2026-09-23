@@ -8,9 +8,8 @@
   --panel:     #29262e;
   --panel-2:   #312d36;
   --line:      #4a4250;
-  --ink:       #f7eaec;
-  --ink-mute:  #c6a8ad;
-  --ink-faint: #9b7c83;
+  --ink:       #f7eaec;   /* 明るいピンク寄りの白：本文・見出し */
+  --ink-mute:  #e1c1c6;   /* 暗いピンク寄りの白：補足・注記 */
 
   /* アクセント（赤系のみで階調をつくる） */
   --red:       #ff4d5e;   /* 主役の赤：見出し番号・強調 */
@@ -156,7 +155,7 @@ code {
 .brand-mark { font-size: 1.3rem; color: var(--red); filter: drop-shadow(0 0 8px rgba(255,77,94,.6)); }
 .brand-text { display: flex; flex-direction: column; line-height: 1.25; }
 .brand-text strong { font-size: 1rem; letter-spacing: .08em; }
-.brand-text small { font-size: .68rem; color: var(--ink-faint); letter-spacing: .1em; }
+.brand-text small { font-size: .68rem; color: var(--ink-mute); letter-spacing: .1em; }
 
 .site-nav ul { display: flex; gap: .2rem; list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
 .site-nav a {
@@ -284,14 +283,14 @@ code {
   scroll-margin-top: 90px;
 }
 .datalist > div:last-child { border-bottom: 0; }
-.datalist dt { margin: 0; color: var(--ink-faint); font-size: .82rem; letter-spacing: .1em; }
+.datalist dt { margin: 0; color: var(--ink-mute); font-size: .82rem; letter-spacing: .1em; }
 .datalist dd { margin: 0; font-size: .94rem; }
 @media (max-width: 560px) {
   .datalist > div { grid-template-columns: 1fr; gap: .1rem; }
 }
 
-.note-inline { display: block; font-size: .76rem; color: var(--ink-faint); margin-top: .25rem; }
-.fineprint { font-size: .76rem; color: var(--ink-faint); margin: 1rem 0 0; }
+.note-inline { display: block; font-size: .76rem; color: var(--ink-mute); margin-top: .25rem; }
+.fineprint { font-size: .76rem; color: var(--ink-mute); margin: 1rem 0 0; }
 
 /* -------- プロフィール内：公式リンク（チップ表示） */
 .link-inline { list-style: none; margin: .2rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
@@ -316,16 +315,10 @@ code {
   display: block;
 }
 .link-inline .handle {
-  font-size: .74rem; font-weight: 400; color: var(--ink-faint);
+  font-size: .74rem; font-weight: 400; color: var(--ink-mute);
   font-family: ui-monospace, Menlo, monospace;
 }
-.link-inline .li-arrow { font-size: .72rem; color: var(--ink-faint); }
-
-/* 赤〜白の階調でサービスを差別化（赤・黒基調のまま） */
-.link-inline .is-yt { --accent: var(--red); }
-.link-inline .is-x  { --accent: var(--ink); }
-.link-inline .is-tt { --accent: var(--red-soft); }
-.link-inline .is-tw { --accent: var(--red-deep); }
+.link-inline .li-arrow { font-size: .72rem; color: var(--ink-mute); }
 
 /* -------- プロフィール内：活動の歩み */
 .milestones { list-style: none; margin: .2rem 0 0; padding: 0; display: grid; gap: .35rem; }
@@ -438,7 +431,7 @@ code {
   font-size: .68rem; font-weight: 700; vertical-align: 1px;
 }
 .cf-req { color: var(--red); border: 1px solid rgba(255,77,94,.5); }
-.cf-opt { color: var(--ink-faint); border: 1px solid var(--line); }
+.cf-opt { color: var(--ink-mute); border: 1px solid var(--line); }
 
 .contact-form input,
 .contact-form select,
@@ -461,7 +454,7 @@ code {
 .cf-status:empty { display: none; }
 .cf-status.is-ok { color: var(--ink); }
 .cf-status.is-error { color: var(--red); }
-.cf-note { margin: 0; font-size: .74rem; color: var(--ink-faint); }
+.cf-note { margin: 0; font-size: .74rem; color: var(--ink-mute); }
 
 /* --------------------------------------------------------- about site */
 .about-site { margin: 0; padding-left: 1.2rem; display: grid; gap: .7rem; }
@@ -479,11 +472,11 @@ code {
 /* --------------------------------------------------------- footer */
 .site-footer { border-top: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 70%, #000); padding: 3rem 0 2.2rem; text-align: center; }
 .footer-tag { margin: 0 0 1rem; font-weight: 800; letter-spacing: .2em; color: var(--red); }
-.footer-note { margin: 0 0 1.2rem; font-size: .8rem; color: var(--ink-faint); line-height: 1.9; }
+.footer-note { margin: 0 0 1.2rem; font-size: .8rem; color: var(--ink-mute); line-height: 1.9; }
 .footer-links { display: flex; gap: 1.3rem; justify-content: center; flex-wrap: wrap; margin: 0 0 1.4rem; }
 .footer-links a { font-size: .85rem; color: var(--ink-mute); text-decoration: none; }
 .footer-links a:hover { color: var(--red-soft); }
-.footer-copy { margin: 0; font-size: .72rem; color: var(--ink-faint); }
+.footer-copy { margin: 0; font-size: .72rem; color: var(--ink-mute); }
 
 /* --------------------------------------------------------- toast */
 .toast {
