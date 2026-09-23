@@ -223,6 +223,7 @@ code {
 .btn-primary {
   background: linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%);
   color: #fff; box-shadow: 0 10px 28px -12px rgba(255,77,94,.85);
+}
 .btn-ghost { border: 1px solid var(--red-deep); color: var(--red-soft); background: rgba(255,77,94,.1); }
 .btn-ghost:hover { background: rgba(255,77,94,.24); color: var(--ink); }
 
