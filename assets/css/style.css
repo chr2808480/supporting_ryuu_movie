@@ -274,6 +274,12 @@ code {
   transform: translateY(-1px); color: var(--ink);
 }
 .link-inline .li-ico { color: var(--accent, var(--red)); font-size: .95em; }
+.link-inline .li-ico { display: inline-flex; }
+.link-inline .li-ico img {
+  width: 1.1em; height: 1.1em;
+  object-fit: contain;   /* 縦横比の違うロゴを歪ませずに収める */
+  display: block;
+}
 .link-inline .handle {
   font-size: .74rem; font-weight: 400; color: var(--ink-faint);
   font-family: ui-monospace, Menlo, monospace;
