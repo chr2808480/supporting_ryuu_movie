@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>お問い合わせ ｜ RyuU星軍 本部（非公式ファンクラブ）</title>
+<meta name="description" content="RyuU 非公式ファンクラブ「ryuu星軍 本部」の掲載内容についてのお問い合わせフォームです。">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90' fill='%23ff4d5e'%3E%E2%98%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">★</span>
+      <span class="brand-text">
+        <strong>ryuu星軍 本部</strong>
+        <small>RyuU 非公式ファンクラブ</small>
+      </span>
+    </a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="section">
+    <div class="wrap narrow">
+      <h1 class="section-title">　掲載内容についてのお問い合わせ</h1>
+      <p class="section-lead">ご本人・権利者の方からのご連絡には最優先で対応し、速やかに修正・削除します。</p>
+
+      <form class="contact-form" id="contact-form" novalidate>
+        <div class="cf-field">
+          <label for="cf-name">お名前・ハンドル名 <span class="cf-opt">任意</span></label>
+          <input id="cf-name" name="name" type="text" autocomplete="nickname" maxlength="60">
+        </div>
+        <div class="cf-field">
+          <label for="cf-email">返信先メールアドレス <span class="cf-req">必須</span></label>
+          <input id="cf-email" name="email" type="email" autocomplete="email" maxlength="120" required>
+        </div>
+        <div class="cf-field">
+          <label for="cf-title">お問い合わせの種類</label>
+          <select id="cf-title" name="title">
+            <option>ご本人・権利者の方からのご連絡</option>
+            <option>掲載内容の誤り・修正依頼</option>
+            <option>その他</option>
+          </select>
+        </div>
+        <div class="cf-field">
+          <label for="cf-message">内容 <span class="cf-req">必須</span></label>
+          <textarea id="cf-message" name="message" rows="6" maxlength="2000" required></textarea>
+        </div>
+        <button class="btn btn-primary cf-submit" type="submit">送信する</button>
+        <p class="cf-status" role="status" aria-live="polite"></p>
+        <p class="cf-note">入力内容はメール送信サービス EmailJS を経由して運営者に届きます。返信以外の目的には使用しません。</p>
+        <noscript><p class="cf-note">フォームの送信には JavaScript を有効にしてください。</p></noscript>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-tag">★ #ryuu星軍 ★</p>
+    <p class="footer-note">
+      RyuU 非公式ファンクラブ<br>
+      本サイトは RyuU さんご本人および関係各所とは関係ありません。
+    </p>
+    <p class="footer-copy">&copy; ryuu星軍 本部（非公式ファンサイト）</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="assets/js/contact.js"></script>
+</body>
+</html>
