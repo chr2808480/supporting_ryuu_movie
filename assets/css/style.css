@@ -1,6 +1,5 @@
 /* ==========================================================================
    ryuu星軍 本部 — RyuU 非公式ファンクラブ
-   Fan-made / unofficial. Theme: 赤 × 黒 (red / black)
    ========================================================================== */
 
 :root {
@@ -123,7 +122,7 @@ code {
 
 /* 大きめの星：少なめ、またたく */
 .starfield::after {
-  --tile: 419px; --drift: 150s;
+  --tile: 419px; --drift: 200s;
   background-image:
     radial-gradient(2px 2px at 41px 83px,       #fff 50%, transparent 51%),
     radial-gradient(1.8px 1.8px at 307px 37px,  rgba(255,154,163,.95) 50%, transparent 51%),
