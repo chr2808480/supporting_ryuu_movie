@@ -1,7 +1,7 @@
 # ryuu星軍 本部 — RyuU 非公式ファンクラブ
 
 声真似配信者 **RyuU**（X: [@RyuU_Movie](https://x.com/RyuU_Movie)）さんを応援する、
-**ファン有志による非公式・非営利**の応援サイトです。
+**ファンによる非公式・非営利**の応援サイトです。
 
 > [!IMPORTANT]
 > 当サイトは RyuU さんご本人および関係各所とは**一切関係がありません**。
@@ -16,7 +16,7 @@
 | YouTube | [@RyuU-movie](https://www.youtube.com/@RyuU-movie) |
 | X（旧Twitter） | [@RyuU_Movie](https://x.com/RyuU_Movie) |
 | TikTok | [@ryuu_douga](https://www.tiktok.com/@ryuu_douga) |
-| Twitch | [game_ryuu](https://www.twitch.tv/game_ryuu)（※要確認） |
+| Twitch | [game_ryuu](https://www.twitch.tv/game_ryuu) |
 
 ファンアート・感想のタグは **`#ryuu星軍`**。
 
@@ -24,8 +24,7 @@
 
 - RyuU さんの紹介（声真似 / ゲーム配信 / 歌ってみた）とプロフィール早見表
 - 視聴前の注意（ジョジョ 1〜9 部のネタバレ、並行世界の承太郎という設定）
-- 公式リンク集と、似た名前の別アカウントへの注意喚起
-- 定期配信（毎週土曜 13:00 JST）と次回までのカウントダウン
+- 公式リンク集
 - 活動の歩み（年表）
 - 応援のはじめ方と、応援マナー（やること / やらないこと）
 - よくある質問
