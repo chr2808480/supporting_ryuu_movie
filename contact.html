@@ -37,8 +37,9 @@
           <input id="cf-name" name="name" type="text" autocomplete="nickname" maxlength="60">
         </div>
         <div class="cf-field">
-          <label for="cf-email">返信先メールアドレス <span class="cf-req">必須</span></label>
-          <input id="cf-email" name="email" type="email" autocomplete="email" maxlength="120" required>
+          <label for="cf-email">返信先メールアドレス <span class="cf-req">任意</span></label>
+          <input id="cf-email" name="email" type="email" autocomplete="email" maxlength="120" atia-describedby="cf-email-hint">
+          <p class="cf-note" id="cf-email-hint">返信が必要な場合のみご記入ください。未記入の場合、運営者から返信できません。</p>
         </div>
         <div class="cf-field">
           <label for="cf-title">お問い合わせの種類</label>
