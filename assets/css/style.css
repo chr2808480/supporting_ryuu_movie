@@ -3,24 +3,23 @@
    ========================================================================== */
 
 :root {
-  --bg:        #1c1a20;   /* 明るめの黒（わずかに青みのチャコール） */
-  --bg-alt:    #222027;
-  --panel:     #29262e;
-  --panel-2:   #312d36;
-  --line:      #4a4250;
+  /* 使う色はこの5色だけ */
+  --bg:        #1c1a20;   /* 黒：背景（わずかに青みのチャコール） */
   --ink:       #f7eaec;   /* 明るいピンク寄りの白：本文・見出し */
   --ink-mute:  #e1c1c6;   /* 暗いピンク寄りの白：補足・注記 */
-
-  /* アクセント（赤系のみで階調をつくる） */
-  --red:       #ff4d5e;   /* 主役の赤：見出し番号・強調 */
+  --red:       #ff4d5e;   /* 赤：強調・ボタン */
   --red-soft:  #ff9aa3;   /* 明るい赤：小見出し・リンク */
-  --red-deep:  #c31e2f;   /* 濃い赤：枠線・ボタン */
-  --red-dim:   #7a1420;   /* さらに濃い赤：影・グラデ終端 */
+
+  /* 面と線の濃淡は、背景に白を少し混ぜて作る（新しい色は足さない） */
+  --bg-alt:    color-mix(in srgb, var(--ink) 3%, var(--bg));
+  --panel:     color-mix(in srgb, var(--ink) 6%, var(--bg));
+  --panel-2:   color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --line:      color-mix(in srgb, var(--ink) 20%, var(--bg));
 
   --radius:    14px;
   --radius-lg: 22px;
   --wrap:      1080px;
-  --shadow:    0 18px 40px -20px rgba(0, 0, 0, .85);
+  --shadow:    0 18px 40px -20px rgba(28, 26, 32, .9);
 
   --font: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP",
           "Yu Gothic UI", "Yu Gothic", Meiryo, system-ui, -apple-system, sans-serif;
@@ -87,13 +86,13 @@ code {
 .starfield {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
   background:
-    radial-gradient(1.4px 1.4px at 37px 51px,   rgba(255,255,255,.75) 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 37px 51px,   rgba(247,234,236,.75) 50%, transparent 51%),
     radial-gradient(1.2px 1.2px at 151px 197px, rgba(247,234,236,.65) 50%, transparent 51%),
-    radial-gradient(1.4px 1.4px at 229px 89px,  rgba(255,255,255,.60) 50%, transparent 51%),
-    radial-gradient(1.2px 1.2px at 83px 241px,  rgba(255,255,255,.55) 50%, transparent 51%),
-    radial-gradient(900px 600px at 82% -10%, rgba(195,30,47,.16), transparent 70%),
+    radial-gradient(1.4px 1.4px at 229px 89px,  rgba(247,234,236,.60) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 83px 241px,  rgba(247,234,236,.55) 50%, transparent 51%),
+    radial-gradient(900px 600px at 82% -10%, rgba(255,77,94,.12), transparent 70%),
     radial-gradient(700px 520px at 6% 105%,  rgba(255,154,163,.07), transparent 70%),
-    linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 50%, color-mix(in srgb, var(--bg) 82%, #000) 100%);
+    linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 50%);
   background-size: 263px 263px, 263px 263px, 263px 263px, 263px 263px, auto, auto, auto;
   background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
 }
@@ -111,24 +110,24 @@ code {
 .starfield::before {
   --tile: 173px; --drift: 220s;
   background-image:
-    radial-gradient(1.2px 1.2px at 11px 23px,   rgba(255,255,255,.80) 50%, transparent 51%),
-    radial-gradient(1px 1px at 67px 131px,      rgba(255,255,255,.60) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 11px 23px,   rgba(247,234,236,.80) 50%, transparent 51%),
+    radial-gradient(1px 1px at 67px 131px,      rgba(247,234,236,.60) 50%, transparent 51%),
     radial-gradient(1.2px 1.2px at 109px 58px,  rgba(247,234,236,.70) 50%, transparent 51%),
-    radial-gradient(1px 1px at 149px 157px,     rgba(255,255,255,.55) 50%, transparent 51%),
+    radial-gradient(1px 1px at 149px 157px,     rgba(247,234,236,.55) 50%, transparent 51%),
     radial-gradient(1px 1px at 43px 97px,       rgba(247,234,236,.60) 50%, transparent 51%),
-    radial-gradient(1.2px 1.2px at 131px 7px,   rgba(255,255,255,.65) 50%, transparent 51%);
+    radial-gradient(1.2px 1.2px at 131px 7px,   rgba(247,234,236,.65) 50%, transparent 51%);
 }
 
 /* 大きめの星：少なめ、またたく */
 .starfield::after {
   --tile: 419px; --drift: 200s;
   background-image:
-    radial-gradient(2px 2px at 41px 83px,       #fff 50%, transparent 51%),
+    radial-gradient(2px 2px at 41px 83px,       var(--ink) 50%, transparent 51%),
     radial-gradient(1.8px 1.8px at 307px 37px,  rgba(255,154,163,.95) 50%, transparent 51%),
-    radial-gradient(2.4px 2.4px at 197px 263px, #fff 50%, transparent 51%),
+    radial-gradient(2.4px 2.4px at 197px 263px, var(--ink) 50%, transparent 51%),
     radial-gradient(1.8px 1.8px at 379px 347px, rgba(247,234,236,.9) 50%, transparent 51%),
     radial-gradient(2px 2px at 113px 389px,     rgba(255,77,94,.9) 50%, transparent 51%),
-    radial-gradient(8px 8px at 197px 263px,     rgba(255,255,255,.22) 25%, transparent 70%); /* 光のにじみ */
+    radial-gradient(8px 8px at 197px 263px,     rgba(247,234,236,.22) 25%, transparent 70%); /* 光のにじみ */
   animation:
     star-drift var(--drift) linear infinite,
     star-twinkle 3.2s ease-in-out infinite alternate;
@@ -220,10 +219,10 @@ code {
 }
 .btn:hover { transform: translateY(-2px); }
 .btn-primary {
-  background: linear-gradient(135deg, var(--red) 0%, var(--red-deep) 100%);
-  color: #fff; box-shadow: 0 10px 28px -12px rgba(255,77,94,.85);
+  background: var(--red);
+  color: var(--bg); box-shadow: 0 10px 28px -12px rgba(255,77,94,.85);
 }
-.btn-ghost { border: 1px solid var(--red-deep); color: var(--red-soft); background: rgba(255,77,94,.1); }
+.btn-ghost { border: 1px solid var(--red); color: var(--red-soft); background: rgba(255,77,94,.1); }
 .btn-ghost:hover { background: rgba(255,77,94,.24); color: var(--ink); }
 
 /* --------------------------------------------------------- tag copy btn */
@@ -240,7 +239,7 @@ code {
 
 /* --------------------------------------------------------- sections */
 .section { padding: clamp(3rem, 8vw, 5.5rem) 0; }
-.section-alt { background: linear-gradient(180deg, rgba(41,38,46,.55), rgba(34,32,39,.85)); border-block: 1px solid var(--line); }
+.section-alt { background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 55%, transparent), color-mix(in srgb, var(--bg-alt) 85%, transparent)); border-block: 1px solid var(--line); }
 
 .section-title {
   display: flex; align-items: baseline; gap: .8rem;
@@ -342,7 +341,7 @@ code {
   margin-top: 2rem; padding: 1.3rem 1.4rem;
   background: rgba(255,77,94,.07);
   border: 1px solid rgba(255,77,94,.3);
-  border-left: 4px solid var(--red-deep);
+  border-left: 4px solid var(--red);
   border-radius: var(--radius);
 }
 .notice-title { margin: 0 0 .5rem; font-size: .98rem; color: var(--red-soft); }
@@ -354,7 +353,7 @@ code {
 }
 .notice-strong .notice-title { color: var(--red); }
 
-.notice-spoiler { background: rgba(122,20,32,.22); border-color: rgba(195,30,47,.45); border-left-color: var(--red-dim); }
+.notice-spoiler { background: rgba(255,154,163,.07); border-color: rgba(255,154,163,.35); border-left-color: var(--red-soft); }
 .notice-spoiler .notice-title { color: var(--red-soft); }
 
 /* --------------------------------------------------------- steps */
@@ -367,7 +366,7 @@ code {
 .step-n {
   flex: none; width: 36px; height: 36px; display: grid; place-items: center;
   border-radius: 50%; font-weight: 800; font-size: .95rem;
-  background: linear-gradient(135deg, var(--red), var(--red-dim)); color: #fff;
+  background: var(--red); color: var(--bg);
 }
 .step h3 { margin: .15rem 0 .35rem; font-size: 1rem; color: var(--red-soft); }
 .step p  { margin: 0; font-size: .88rem; color: var(--ink-mute); }
@@ -470,7 +469,7 @@ code {
 .about-site.is-sm strong { color: var(--red-soft); font-weight: 700; }
 
 /* --------------------------------------------------------- footer */
-.site-footer { border-top: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 70%, #000); padding: 3rem 0 2.2rem; text-align: center; }
+.site-footer { border-top: 1px solid var(--line); background: var(--bg); padding: 3rem 0 2.2rem; text-align: center; }
 .footer-tag { margin: 0 0 1rem; font-weight: 800; letter-spacing: .2em; color: var(--red); }
 .footer-note { margin: 0 0 1.2rem; font-size: .8rem; color: var(--ink-mute); line-height: 1.9; }
 .footer-links { display: flex; gap: 1.3rem; justify-content: center; flex-wrap: wrap; margin: 0 0 1.4rem; }
