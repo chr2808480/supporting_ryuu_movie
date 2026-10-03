@@ -78,7 +78,7 @@ code {
 :focus-visible { outline: 2px solid var(--red); outline-offset: 3px; border-radius: 4px; }
 
 .wrap { width: min(var(--wrap), calc(100% - 2rem)); margin-inline: auto; }
-.wrap.narrow { width: min(760px, calc(100% - 2rem)); }
+.wrap.narrow { width: min(40rem, calc(100% - 2rem)); }
 .center { text-align: center; }
 
 /* --------------------------------------------------------- starfield bg */
@@ -419,7 +419,7 @@ code {
 .faq.is-sm details p { font-size: .78rem; line-height: 1.75; margin-bottom: .8rem; padding-left: 1.2rem; }
 /* --------------------------------------------------------- contact form */
 .contact-form {
-  display: grid; gap: 1.1rem; max-width: 36rem;
+  display: grid; gap: 1.1rem;
   padding: 1.6rem 1.5rem;
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg);
 }
