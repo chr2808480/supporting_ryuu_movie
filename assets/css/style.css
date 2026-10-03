@@ -418,6 +418,8 @@ code {
 .faq.is-sm summary::before { font-size: .8em; }
 .faq.is-sm details p { font-size: .78rem; line-height: 1.75; margin-bottom: .8rem; padding-left: 1.2rem; }
 /* --------------------------------------------------------- contact form */
+.wrap.narrow .section-title { justify-content: center; text-align: center; }
+.wrap.narrow .section-lead  { text-align: center; }
 .contact-form {
   display: grid; gap: 1.1rem;
   padding: 1.6rem 1.5rem;
