@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>星軍ひろば（案） ｜ RyuU星軍 本部（非公式ファンクラブ）</title>
+<meta name="description" content="RyuU 非公式ファンクラブ「ryuu星軍 本部」の、匿名で参加できるファン交流スペース「星軍ひろば」のページ案です。">
+<!-- 交流ページは検索エンジンに載せない（企画書 第2章）。sitemap.xml にも入れない -->
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90' fill='%23ff4d5e'%3E%E2%98%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/hiroba.css">
+</head>
+<body>
+
+<a class="skip-link" href="#feed">投稿一覧へスキップ</a>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">★</span>
+      <span class="brand-text">
+        <strong>ryuu星軍 本部</strong>
+        <small>RyuU 非公式ファンクラブ</small>
+      </span>
+    </a>
+    <nav class="site-nav" aria-label="メインナビゲーション">
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav-list">
+        <span class="sr-only">メニューを開く</span>
+        <span class="nav-bars" aria-hidden="true"></span>
+      </button>
+      <ul id="nav-list">
+        <li><a href="#feed">ひろば</a></li>
+        <li><a href="#rules">ひろばのルール</a></li>
+        <li><a href="#data">預かる情報</a></li>
+        <li><a href="index.html">本部トップへ</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ ページ案であることの表示 ＋ デモ操作 ============ -->
+  <div class="wrap">
+    <div class="hb-demo" role="note">
+      <p class="hb-demo-text">
+        <strong>ページ案（デモ）</strong>
+        「星軍ひろば」の見た目と動きを確かめるための試作です。表示中の投稿はすべてサンプルで、投稿・通報はどこにも送信されず、再読み込みで元に戻ります。
+      </p>
+      <details class="hb-demo-tools">
+        <summary>デモ操作</summary>
+        <div class="hb-demo-buttons">
+          <button type="button" class="hb-chip" data-demo="login" aria-pressed="false">ログインした状態にする</button>
+          <button type="button" class="hb-chip" data-demo="night" aria-pressed="false">23時〜6時の表示を試す</button>
+          <button type="button" class="hb-chip" data-demo="absent" aria-pressed="false">運営者不在の表示を試す</button>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ============ ひろばの入口 ============ -->
+  <section class="hb-top">
+    <div class="wrap">
+      <p class="eyebrow">FAN SPACE / UNOFFICIAL</p>
+      <h1 class="hb-title">星軍ひろば <small>（仮称）</small></h1>
+      <p class="hb-lead">
+        配信や動画の感想を、安心して語れる小さな居場所。名前を出さずに参加できます。<br>
+        X の <button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button> を置き換えるものではなく、補う場所です。
+      </p>
+
+      <!-- ルールの要約は各ページの上部に常に表示する（企画書 第5章） -->
+      <aside class="hb-summary" aria-labelledby="hb-summary-title">
+        <h2 class="hb-summary-title" id="hb-summary-title">ひろばの約束</h2>
+        <ul class="hb-summary-list">
+          <li>ここは非公式のファンのひろばです。</li>
+          <li>個人情報と詮索は禁止。誰かを貶す言葉は使わない。ネタバレは折りたたみで。</li>
+          <li>困ったときは通報ボタンへ。</li>
+        </ul>
+        <a class="hb-summary-more" href="#rules">ルール全文を読む</a>
+      </aside>
+
+      <p class="hb-status" id="hb-status" role="status" aria-live="polite"></p>
+
+      <section class="hb-news" aria-labelledby="hb-news-title">
+        <h2 class="hb-news-title" id="hb-news-title">運営からのお知らせ</h2>
+        <ul class="hb-news-list">
+          <li><span class="hb-news-tag">サンプル</span>運営者不在のお知らせ：○月○日は新規投稿をお休みします（閲覧はできます）。</li>
+          <li>毎日23:00〜6:00（日本時間）は新規投稿をお休みします。1人で運営しており、すぐに対応できない時間に被害が広がるのを防ぐためです。</li>
+          <li><span class="hb-news-tag">サンプル</span>星軍ひろばの試験運用を始めました。</li>
+        </ul>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ 掲示板 ============ -->
+  <div class="wrap hb-layout">
+
+    <section class="hb-feed" id="feed" aria-labelledby="hb-feed-title" tabindex="-1">
+      <h2 class="sr-only" id="hb-feed-title">投稿一覧</h2>
+
+      <!-- 未ログイン：参加の案内 -->
+      <div class="hb-panel hb-join" id="hb-join">
+        <p class="hb-join-text">投稿・返信・⭐には参加登録が必要です。読むだけなら登録はいりません。</p>
+        <button type="button" class="btn btn-primary hb-btn" data-open="join">ひろばに参加する</button>
+      </div>
+
+      <!-- ログイン中：投稿フォーム -->
+      <form class="hb-panel hb-form" id="hb-form" novalidate hidden>
+        <p class="hb-closed" id="hb-closed" hidden></p>
+        <fieldset class="hb-fieldset" id="hb-fields">
+          <legend class="hb-form-who">新しい投稿 <span>— <strong id="hb-me-name"></strong> として</span></legend>
+
+          <div class="hb-tagpick" role="radiogroup" aria-labelledby="hb-tagpick-label">
+            <span class="hb-label" id="hb-tagpick-label">話題タグ <span class="cf-req">一つ選ぶ</span></span>
+            <label><input type="radio" name="tag" value="感想"><span>感想</span></label>
+            <label><input type="radio" name="tag" value="おすすめ動画"><span>おすすめ動画</span></label>
+            <label><input type="radio" name="tag" value="質問"><span>質問</span></label>
+            <label><input type="radio" name="tag" value="雑談"><span>雑談</span></label>
+          </div>
+
+          <label class="sr-only" for="hb-body">投稿の内容</label>
+          <textarea class="hb-textarea" id="hb-body" name="body" rows="4" maxlength="1000"
+                    placeholder="配信や動画の感想、おすすめ、質問など" aria-describedby="hb-public"></textarea>
+
+          <label class="hb-check"><input type="checkbox" name="spoiler"> ネタバレを含む（折りたたんで表示）</label>
+
+          <p class="hb-public" id="hb-public">この投稿は誰でも見られます（ログインしていない人も含みます）。</p>
+
+          <div class="hb-warn" id="hb-pii" role="alert" hidden>
+            <p class="hb-warn-text" id="hb-pii-text"></p>
+            <div class="hb-warn-buttons">
+              <button type="button" class="hb-chip" data-pii="fix">書き直す</button>
+              <button type="button" class="hb-chip is-danger" data-pii="post">このまま投稿する</button>
+            </div>
+          </div>
+
+          <div class="hb-form-foot">
+            <span class="hb-count" id="hb-count" aria-live="off">0 / 1000</span>
+            <button class="btn btn-primary hb-btn" type="submit">投稿する</button>
+          </div>
+          <p class="cf-status" id="hb-form-msg" role="status"></p>
+        </fieldset>
+      </form>
+
+      <!-- 話題タグで絞り込む（掲示板は一つ。話題ごとに分けない） -->
+      <div class="hb-filter" role="group" aria-label="話題タグで絞り込む">
+        <button type="button" class="hb-chip" data-filter="all" aria-pressed="true">すべて</button>
+        <button type="button" class="hb-chip" data-filter="感想" aria-pressed="false">感想</button>
+        <button type="button" class="hb-chip" data-filter="おすすめ動画" aria-pressed="false">おすすめ動画</button>
+        <button type="button" class="hb-chip" data-filter="質問" aria-pressed="false">質問</button>
+        <button type="button" class="hb-chip" data-filter="雑談" aria-pressed="false">雑談</button>
+      </div>
+
+      <p class="hb-hidden-note" id="hb-hidden-note" hidden></p>
+      <div class="hb-posts" id="hb-posts">
+        <noscript><p class="hb-panel">投稿の表示には JavaScript を有効にしてください。</p></noscript>
+      </div>
+    </section>
+
+    <aside class="hb-side" aria-label="サイドメニュー">
+      <section class="hb-panel" aria-labelledby="hb-me-title">
+        <h2 class="hb-side-title" id="hb-me-title">マイメニュー</h2>
+        <div id="hb-menu"></div>
+      </section>
+
+      <section class="hb-panel" aria-labelledby="hb-help-title">
+        <h2 class="hb-side-title" id="hb-help-title">困ったときは</h2>
+        <ul class="hb-help">
+          <li><strong>嫌な投稿を見た</strong>言い返さず、投稿の「…」からミュートか通報を。通報したことは相手に知らされません。</li>
+          <li><strong>自分の情報が書かれた</strong>通報で「個人情報」を選んでください。運営が気づいた時点ですぐ非表示にします。</li>
+          <li><strong>ご本人・権利者の方</strong><a href="contact.html">お問い合わせフォーム</a>から削除をご依頼ください。最優先で対応します。</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <!-- ============ ルール全文 ============ -->
+  <section id="rules" class="section section-alt hb-section">
+    <div class="wrap">
+      <h2 class="section-title">　ひろばのルール</h2>
+      <p class="section-lead">本部の「軍の作法」に、ひろば専用の約束を足したものです。</p>
+
+      <div class="grid grid-2">
+        <article class="rule rule-dont">
+          <h3>　× 禁止事項（非表示・停止の対象）</h3>
+          <ol class="hb-ol">
+            <li>自分や他人の個人情報（本名、住所、学校・勤務先、連絡先、顔写真、他SNSのアカウント）の投稿</li>
+            <li>RyuUさんの「中の人」や私生活の詮索、それを促す投稿（公開情報だとしても）</li>
+            <li>誹謗中傷、差別、脅迫、つきまとい</li>
+            <li>他の配信者・声真似主を貶す比較や、他のコミュニティへの攻撃の呼びかけ</li>
+            <li>動画・配信・画像の無断転載、他人のファンアートの転載</li>
+            <li>RyuUさん、関係者、運営、他の利用者へのなりすまし</li>
+            <li>宣伝・勧誘・金銭のやりとり、外部への個別連絡の誘い（「こちらにDMして」など）</li>
+            <li>複数アカウントによる自作自演、処分の回避</li>
+          </ol>
+        </article>
+        <div class="hb-rule-stack">
+          <article class="rule rule-do">
+            <h3>　○ お願い</h3>
+            <ul>
+              <li>ジョジョ本編や公開前の内容のネタバレは「ネタバレ」で折りたたむ</li>
+              <li>新しく来た人をそっと歓迎する。「古参・新参」で線を引かない</li>
+              <li>配信中の実況コメントは公式のチャットで。ここでは配信後の感想を</li>
+              <li>ここでの話題を、RyuUさん本人や他の配信のコメント欄に持ち込まない</li>
+              <li>嫌な投稿には言い返さず、ミュートか通報で。運営者はしっかり見ています</li>
+            </ul>
+          </article>
+          <article class="rule">
+            <h3 class="hb-rule-h">　運営からの約束</h3>
+            <ul>
+              <li>削除や停止をしたときは、理由と異議の申立て方を伝えます</li>
+              <li>集める情報は必要最小限にし、他の利用者には見せません</li>
+              <li>ルールを変えるときは、事前にお知らせします</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <h3 class="mini-title hb-mini">　違反があったとき</h3>
+      <ol class="steps hb-steps">
+        <li class="step"><span class="step-n">1</span><div><h3>注意</h3><p>投稿は残します（ネタバレなら折りたたみを付けます）。初回・悪意のない違反が対象です。</p></div></li>
+        <li class="step"><span class="step-n">2</span><div><h3>投稿の非表示＋理由の通知</h3><p>どのルールに当たったかをお伝えします。</p></div></li>
+        <li class="step"><span class="step-n">3</span><div><h3>7日間の投稿停止</h3><p>同じ違反が2回目のときです。</p></div></li>
+        <li class="step"><span class="step-n">4</span><div><h3>利用停止</h3><p>改善が見られない場合です。</p></div></li>
+      </ol>
+      <p class="fineprint">
+        個人情報の晒し・脅迫・RyuUさんや他の配信者への加害は、段階を飛ばして利用停止にします。
+        処置の通知には「どの投稿か・どのルールに当たるか・処置の内容と期間・異議の申立て方」を書きます。異議の申立ては1件につき1回で、24時間おいてから見直します。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 預かる情報 ============ -->
+  <section id="data" class="section hb-section">
+    <div class="wrap">
+      <h2 class="section-title">　ひろばが預かる情報</h2>
+      <p class="section-lead">他の利用者に見えるのは表示名だけです。運営に預ける情報も、違反への対応に必要な最小限にします。</p>
+
+      <div class="hb-table-wrap">
+        <table class="hb-table">
+          <thead>
+            <tr><th scope="col">情報</th><th scope="col">扱い</th><th scope="col">使いみち</th><th scope="col">保存期間</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">本名・住所・電話番号・生年月日</th><td>集めません</td><td>—</td><td>—</td></tr>
+            <tr><th scope="row">表示名（ニックネーム）</th><td>公開</td><td>投稿者の表示</td><td>退会まで</td></tr>
+            <tr><th scope="row">ログイン用メールアドレス</th><td>非公開（運営のみ）</td><td>ログイン、重要なお知らせ</td><td>退会後すぐ削除</td></tr>
+            <tr><th scope="row">投稿時のIPアドレスと日時</th><td>暗号化して運営のみ</td><td>荒らし対策、法的な開示請求への対応</td><td>90日で自動削除</td></tr>
+            <tr><th scope="row">アクセス解析・広告のタグ</th><td>ひろばでは使いません</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fineprint">
+        ひろばは16歳以上の方が対象です。フォロー関係・オンライン状態・最終ログイン時刻・利用開始時期は表示しません。
+        画像の位置情報は、画像投稿を始めるときにアップロード時点で自動削除します。
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ ダイアログ：参加登録（ルール同意 → メール） ============ -->
+<dialog class="hb-dialog" id="dlg-join" aria-labelledby="dlg-join-title">
+  <form class="hb-dialog-body" id="join-form" novalidate>
+    <h2 class="hb-dialog-title" id="dlg-join-title">星軍ひろばに参加する</h2>
+
+    <div data-step="1">
+      <p class="hb-dialog-lead">はじめに、ひろばの約束を確認してください。</p>
+      <ul class="hb-summary-list is-boxed">
+        <li>ここは非公式のファンのひろばです。</li>
+        <li>個人情報と詮索は禁止。誰かを貶す言葉は使わない。ネタバレは折りたたみで。</li>
+        <li>困ったときは通報ボタンへ。</li>
+      </ul>
+      <p class="cf-note"><a href="#rules" data-close>ルール全文</a>と<a href="#data" data-close>預かる情報</a>も読めます。</p>
+      <label class="hb-check"><input type="checkbox" name="age"> 16歳以上です</label>
+      <label class="hb-check"><input type="checkbox" name="agree"> ひろばのルールを守ります</label>
+      <p class="cf-note">16歳未満の方はご利用いただけません。</p>
+      <div class="hb-dialog-foot">
+        <button type="button" class="hb-chip" data-close>やめる</button>
+        <button type="button" class="btn btn-primary hb-btn" data-next disabled>次へ</button>
+      </div>
+    </div>
+
+    <div data-step="2" hidden>
+      <div class="cf-field">
+        <label for="join-email">ログイン用メールアドレス</label>
+        <input class="hb-input" id="join-email" name="email" type="email" autocomplete="email" maxlength="120" aria-describedby="join-email-hint">
+        <p class="cf-note" id="join-email-hint">ログイン用のリンクを送ります（パスワードはありません）。メールアドレスは他の利用者には見えません。</p>
+      </div>
+      <div class="cf-field">
+        <label for="join-name">表示名</label>
+        <input class="hb-input" id="join-name" name="handle" type="text" autocomplete="off" maxlength="20" aria-describedby="join-name-hint">
+        <p class="cf-note" id="join-name-hint">本名・SNSアカウント・学校名は書かないでください。あとから同じ人の発言だと分かるよう、固定の表示名になります。</p>
+      </div>
+      <p class="cf-status is-error" id="join-msg" role="status"></p>
+      <div class="hb-dialog-foot">
+        <button type="button" class="hb-chip" data-back>戻る</button>
+        <button type="submit" class="btn btn-primary hb-btn">ログイン用リンクを送る</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ ダイアログ：通報 ============ -->
+<dialog class="hb-dialog" id="dlg-report" aria-labelledby="dlg-report-title">
+  <form class="hb-dialog-body" id="report-form" novalidate>
+    <h2 class="hb-dialog-title" id="dlg-report-title">この投稿を通報する</h2>
+    <p class="hb-dialog-quote" id="report-quote"></p>
+    <fieldset class="hb-reasons">
+      <legend class="hb-label">理由 <span class="cf-req">必須</span></legend>
+      <label><input type="radio" name="reason" value="個人情報"> 個人情報が書かれている</label>
+      <label><input type="radio" name="reason" value="誹謗中傷"> 誹謗中傷・差別・脅迫</label>
+      <label><input type="radio" name="reason" value="無断転載"> 無断転載</label>
+      <label><input type="radio" name="reason" value="なりすまし"> なりすまし</label>
+      <label><input type="radio" name="reason" value="スパム"> 宣伝・スパム</label>
+      <label><input type="radio" name="reason" value="ネタバレ"> 折りたたまれていないネタバレ</label>
+      <label><input type="radio" name="reason" value="その他"> その他</label>
+    </fieldset>
+    <div class="cf-field">
+      <label for="report-note">補足 <span class="cf-opt">任意</span></label>
+      <textarea class="hb-textarea" id="report-note" name="note" rows="3" maxlength="500"></textarea>
+    </div>
+    <p class="cf-note">通報したことは投稿者には知らされません。対応の結果だけを短くお知らせします。</p>
+    <p class="cf-status is-error" id="report-msg" role="status"></p>
+    <div class="hb-dialog-foot">
+      <button type="button" class="hb-chip" data-close>やめる</button>
+      <button type="submit" class="btn btn-primary hb-btn">通報する</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ============ ダイアログ：確認（投稿の削除・退会） ============ -->
+<dialog class="hb-dialog" id="dlg-confirm" aria-labelledby="dlg-confirm-title" aria-describedby="dlg-confirm-text">
+  <div class="hb-dialog-body">
+    <h2 class="hb-dialog-title" id="dlg-confirm-title"></h2>
+    <p class="hb-dialog-lead" id="dlg-confirm-text"></p>
+    <div class="hb-dialog-foot">
+      <button type="button" class="hb-chip" data-close>やめる</button>
+      <button type="button" class="btn btn-primary hb-btn" id="dlg-confirm-ok"></button>
+    </div>
+  </div>
+</dialog>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p class="footer-tag">★ #ryuu星軍 ★</p>
+    <p class="footer-note">
+      RyuU 非公式ファンクラブ<br>
+      本サイトは RyuU さんご本人および関係各所とは関係ありません。
+    </p>
+    <p class="footer-links">
+      <a href="#rules">ひろばのルール</a>
+      <a href="#data">預かる情報</a>
+      <span class="hb-soon">利用規約（準備中）</span>
+      <span class="hb-soon">プライバシーポリシー（準備中）</span>
+      <a href="contact.html">削除依頼・お問い合わせ</a>
+    </p>
+    <p class="footer-copy">&copy; <span id="year">2026</span> ryuu星軍 本部（非公式ファンサイト）</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/js/main.js"></script>
+<script src="assets/js/hiroba.js"></script>
+</body>
+</html>
