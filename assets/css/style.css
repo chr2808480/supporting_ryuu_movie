@@ -371,6 +371,26 @@ code {
 .step h3 { margin: .15rem 0 .35rem; font-size: 1rem; color: var(--red-soft); }
 .step p  { margin: 0; font-size: .88rem; color: var(--ink-mute); }
 
+/* --------------------------------------------------------- ひろばの案内 */
+.hiroba-intro {
+  margin-top: 2rem; padding: 1.4rem 1.5rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem 2rem;
+  background: var(--panel-2); border: 1px solid rgba(255,77,94,.45);
+  border-radius: var(--radius-lg);
+  scroll-margin-top: 90px;
+}
+.hiroba-intro-text { flex: 1 1 22rem; }
+.hiroba-intro-text .mini-title { margin-bottom: .5rem; }
+.hiroba-intro-text p { margin: 0 0 .7rem; font-size: .9rem; color: var(--ink-mute); }
+.hiroba-badge {
+  display: inline-block; margin-left: .3rem; padding: 0 .55rem; border-radius: 999px;
+  font-size: .68rem; letter-spacing: .08em; vertical-align: 2px;
+  color: var(--bg); background: var(--red-soft);
+}
+.hiroba-points { margin: 0; padding-left: 1.2rem; display: grid; gap: .3rem; }
+.hiroba-points li { font-size: .84rem; color: var(--ink-mute); }
+.hiroba-intro-cta { flex: 0 1 15rem; display: grid; gap: .4rem; justify-items: start; }
+
 /* --------------------------------------------------------- rules */
 .rule { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem 1.4rem; }
 .rule h3 { margin: 0 0 .8rem; font-size: 1rem; }
