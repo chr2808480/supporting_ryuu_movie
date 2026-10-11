@@ -45,6 +45,9 @@ python3 -m http.server 8000   # → http://localhost:8000
 index.html              サイト本体（1 ページ完結）
 assets/css/style.css    配色・レイアウト
 assets/js/main.js       メニュー / 配信カウントダウン / タグコピー
+hiroba.html             星軍ひろば（ファン交流スペース）のページ案。デモ動作のみ・noindex・ナビ未掲載
+assets/css/hiroba.css   ひろば専用のスタイル
+assets/js/hiroba.js     ひろばのデモ動作（投稿・通報・登録はどこにも送信しない）
 docs/research.md        調査メモ・情報源・確度（更新前に必読）
 docs/operations.md      運営ガイド（非公式サイトとして守ること、更新手順）
 ```
