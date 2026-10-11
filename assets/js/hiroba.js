@@ -1,5 +1,5 @@
 /*!
- * ryuu星軍 本部 — 星軍ひろば（ページ案）
+ * ryuu星軍 本部 — 星軍基地（ページ案）
  * 見た目と動きを確かめるためのデモ。投稿・通報・登録はどこにも送信しない。
  * 本番では、受付時間・往復回数・個人情報らしい文字列・保留の判定をサーバー側の関数で行う
  * （ブラウザ側だけのチェックは簡単にすり抜けられるため）。
@@ -39,6 +39,7 @@
     muted: [],
     blocked: [],
     starred: {},
+    popStar: null,     // 「オラ！」を弾ませる投稿の id（押した直後だけ）
     replyLog: [],      // { to: 相手の表示名, at: 時刻 }
     replyingTo: null,  // 返信フォームを開いている投稿の id
     editing: null,     // 編集中の投稿の id
@@ -276,11 +277,15 @@
         "⭐ ", el("strong", { text: String(p.stars) }), "（数はあなたにだけ表示）"
       ]));
     } else {
+      // 押す前は ⭐ だけ。押したら「オラ！」と出す（もう一度押すと取り消し）
       var on = !!state.starred[p.id];
       actions.appendChild(el("button", {
-        type: "button", className: "hb-act", "data-action": "star", "data-id": p.id, "data-key": "star:" + p.id,
-        "aria-pressed": on ? "true" : "false", text: on ? "⭐ 届けました" : "⭐ 届ける"
-      }));
+        type: "button", className: "hb-act hb-star" + (state.popStar === p.id ? " is-pop" : ""),
+        "data-action": "star", "data-id": p.id, "data-key": "star:" + p.id, "aria-pressed": on ? "true" : "false"
+      }, on
+        ? ["⭐", el("span", { className: "hb-ora", text: "オラ！" })]
+        : ["⭐", el("span", { className: "sr-only", text: "を送る" })]
+      ));
     }
 
     actions.appendChild(el("button", {
@@ -337,7 +342,7 @@
 
     if (!state.me) {
       wrap.appendChild(el("p", { className: "hb-limit", text: "返信するには参加登録が必要です。" }));
-      wrap.appendChild(el("div", null, [el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "ひろばに参加する" })]));
+      wrap.appendChild(el("div", null, [el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })]));
       return wrap;
     }
 
@@ -381,7 +386,7 @@
     if (!state.me) {
       menuEl.appendChild(el("p", { className: "hb-menu-note", text: "参加すると、投稿・返信・⭐・ミュートができます。" }));
       menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
-        el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "ひろばに参加する" })
+        el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })
       ]));
       return;
     }
@@ -673,7 +678,10 @@
       case "star":
         if (!state.me) { openJoin(); return; }
         state.starred[p.id] = !state.starred[p.id];
-        break;
+        state.popStar = state.starred[p.id] ? p.id : null;   // 押した直後の1回だけ「オラ！」を弾ませる
+        render();
+        state.popStar = null;
+        return;
       case "reply":
         state.replyingTo = state.replyingTo === p.id ? null : p.id;
         state.editing = null;
