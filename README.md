@@ -27,6 +27,7 @@
 - 公式リンク集
 - 活動の歩み（年表）
 - 応援のはじめ方と、応援マナー（やること / やらないこと）
+- ファン交流スペース「星軍ひろば」の案内（準備中・デモ版へのリンク）
 - よくある質問
 
 ## 動かす
@@ -45,7 +46,7 @@ python3 -m http.server 8000   # → http://localhost:8000
 index.html              サイト本体（1 ページ完結）
 assets/css/style.css    配色・レイアウト
 assets/js/main.js       メニュー / 配信カウントダウン / タグコピー
-hiroba.html             星軍ひろば（ファン交流スペース）のページ案。デモ動作のみ・noindex・ナビ未掲載
+hiroba.html             星軍ひろば（ファン交流スペース）のページ案。デモ動作のみ・noindex（index.html の入軍案内から案内）
 assets/css/hiroba.css   ひろば専用のスタイル
 assets/js/hiroba.js     ひろばのデモ動作（投稿・通報・登録はどこにも送信しない）
 docs/research.md        調査メモ・情報源・確度（更新前に必読）
