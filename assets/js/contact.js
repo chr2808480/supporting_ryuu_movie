@@ -12,6 +12,7 @@
    * テンプレート本文ではフォームの name 属性と同じ変数が使えます：
    *   {{name}} {{email}} {{title}} {{message}}
    * （Reply To に {{email}} を指定しておくと、届いたメールからそのまま返信できます）
+   * いまのテンプレート本文は emailjs/contact-template.html（貼り付けかたは emailjs/README.md）
    */
   var EMAILJS = {
     publicKey:  "5X817nnLC3qenuVtC",
