@@ -46,7 +46,7 @@ const RULES = {
   banRetentionMs: 365 * DAY,         // 利用停止にしたアカウントの記録
   unregisteredRetentionMs: 7 * DAY   // 参加登録を済ませないままのログイン情報（最後に使った日から）
 };
-const TERMS_VERSION = "2026-10-案";   // 利用規約を改めたら上げる（同意の記録に残る）
+const TERMS_VERSION = "v1";   // 利用規約を改めたら上げる（v2, v3 …。同意の記録に残る）
 const TAGS = ["感想", "おすすめ動画", "質問", "雑談"];
 const REASONS = ["個人情報", "誹謗中傷", "無断転載", "なりすまし", "スパム", "ネタバレ", "その他"];
 const ACTIONS = ["approve", "hide", "restore", "warn", "suspend", "lift", "ban"];
@@ -108,16 +108,27 @@ function checkPII(text, confirmed) {
 
 /* ---- 表示名 */
 const RESERVED = /運営|管理人|管理者|公式|official|admin/i;
+// 画面に出ない文字・書式の文字（ゼロ幅スペース、右から左への並べ替えなど）。混ぜると「運営」や他の人と
+// 同じに見える名前を作れるため使わせない（Unicode UTS #39）。ただし絵文字のすぐ後の、見た目を選ぶ文字（U+FE0E・U+FE0F）と、
+// 絵文字どうしをつなぐ文字（ZWJ）は、絵文字を使えるように認める（hiroba.js と同じ判定）
+const INVISIBLE = /[\p{Default_Ignorable_Code_Point}\p{Cf}]/gu;
+function hasInvisible(s) {
+  const rest = s
+    .replace(/(\p{Extended_Pictographic})[\uFE0E\uFE0F]/gu, "$1")
+    .replace(/(\p{Extended_Pictographic})\u200D(?=\p{Extended_Pictographic})/gu, "$1");
+  return /[\p{Default_Ignorable_Code_Point}\p{Cf}]/u.test(rest);
+}
 function cleanHandle(v) {
   const s = str(v).normalize("NFKC").replace(/\s+/g, " ").trim();
   if (!s) throw fail("invalid-argument", "表示名を入力してください。", "empty");
   if (s.length > RULES.handleMax) throw fail("invalid-argument", "表示名は" + RULES.handleMax + "文字までです。", "too-long");
-  if (/[\u0000-\u001f\u007f<>]/.test(s)) throw fail("invalid-argument", "表示名に使えない文字が含まれています。", "bad-char");
+  if (/[\u0000-\u001f\u007f<>]/.test(s) || hasInvisible(s)) throw fail("invalid-argument", "表示名に使えない文字（見えない文字など）が含まれています。", "bad-char");
   if (detectPII(s).length || hasLink(s)) throw fail("invalid-argument", "表示名に連絡先や住所らしい文字列が含まれています。", "pii");
-  if (RESERVED.test(s) || /^ryuu$/i.test(s)) throw fail("invalid-argument", "運営や RyuU さんと紛らわしい表示名は使えません。", "reserved");
+  // 「Ryu U」のように空白を入れただけの名前も断る
+  if (RESERVED.test(s.replace(INVISIBLE, "")) || handleKey(s) === "ryuu") throw fail("invalid-argument", "運営や RyuU さんと紛らわしい表示名は使えません。", "reserved");
   return s;
 }
-function handleKey(handle) { return handle.normalize("NFKC").toLowerCase().replace(/\s+/g, ""); }
+function handleKey(handle) { return handle.normalize("NFKC").toLowerCase().replace(INVISIBLE, "").replace(/\s+/g, ""); }
 
 /* ---- 暗号化（IP）と照合用のハッシュ（利用停止のメールアドレス） */
 function keys() {
@@ -398,6 +409,9 @@ exports.deleteAccount = onCall(async (request) => {
   const uid = request.auth.uid;
   const userRef = db.doc("users/" + uid);
   const user = (await userRef.get()).data();
+  // 利用停止の直後は、本人の手元のログイン（ID トークン）が期限まで使える。退会の形で処置の記録や
+  // 表示名の予約を消されないよう断る（記録は利用停止から1年で消える。プライバシーポリシー 2.）
+  if (user && user.status === "banned") throw fail("permission-denied", "このアカウントは利用停止になっています。", "banned");
 
   const [posts, replies, stars, mods] = await Promise.all([
     db.collection("posts").where("authorUid", "==", uid).get(),

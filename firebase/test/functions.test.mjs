@@ -23,9 +23,21 @@ test("参加登録：同意・表示名の確認と、表示名の重複", async
   const c = await signIn("c@example.com");
   assert.equal(await reasonOf(call("registerProfile", { handle: "ｓｔａｒ", age16: true, agree: true }, c)), "handle-taken");
 
+  // 見えない文字を混ぜて「運営」や他の人と同じに見える名前、空白を入れた「Ryu U」は使えない
+  const d = await signIn("d@example.com");
+  for (const bad of ["運\u200B営", "管\u2060理人", "流れ\u200D星", "abc\u202Edef", "運\uFE0F営", "\u3164"]) {
+    assert.equal(await reasonOf(call("registerProfile", { handle: bad, age16: true, agree: true }, d)), "bad-char", JSON.stringify(bad));
+  }
+  assert.equal(await reasonOf(call("registerProfile", { handle: "Ryu U", age16: true, agree: true }, d)), "reserved");
+  // 絵文字の見た目を選ぶ文字と、絵文字どうしをつなぐ文字は使える。重複の判定では取り除いて比べる
+  assert.equal((await call("registerProfile", { handle: "星⭐\uFE0F", age16: true, agree: true }, d)).handle, "星⭐\uFE0F");
+  const e = await signIn("e@example.com");
+  assert.equal(await reasonOf(call("registerProfile", { handle: "星⭐", age16: true, agree: true }, e)), "handle-taken");
+  assert.equal((await call("registerProfile", { handle: "❤\uFE0F\u200D🔥", age16: true, agree: true }, e)).handle, "❤\uFE0F\u200D🔥");
+
   const user = (await db.doc("users/" + a.uid).get()).data();
   assert.equal(user.consent.age16, true);
-  assert.ok(user.consent.termsVersion);
+  assert.equal(user.consent.termsVersion, "v1");
   assert.equal(user.email, undefined, "メールアドレスは Firestore に置かない");
 });
 
@@ -209,6 +221,15 @@ test("運営者：登録したメールだけが有効にでき、確認・非�
   assert.equal((await db.collection("bans").get()).size, 1);
   const ban = (await db.collection("bans").get()).docs[0];
   assert.ok(!ban.id.includes("example"), "照合用のハッシュだけを残す");
+
+  // 利用停止の直後でも、本人の手元のログイン（ID トークン）は期限まで使える。
+  // それで退会して、処置の記録や表示名の予約を消すことはできない
+  const mods = (await db.collection("moderation").where("targetUid", "==", b.uid).get()).size;
+  assert.ok(mods >= 1);
+  assert.equal(await reasonOf(call("deleteAccount", {}, b)), "banned");
+  assert.equal((await db.collection("moderation").where("targetUid", "==", b.uid).get()).size, mods);
+  assert.equal((await db.doc("users/" + b.uid).get()).data().status, "banned");
+  assert.equal((await db.doc("handles/星屑").get()).exists, true);
 
   // 同じメールアドレスでは登録し直せない
   const again = await signIn("b@example.com");
