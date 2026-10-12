@@ -15,7 +15,7 @@
    */
   var EMAILJS = {
     publicKey:  "5X817nnLC3qenuVtC",
-    serviceId:  "service_rwf3ey8",
+    serviceId:  "contact_service",
     templateId: "template_w407ihr"
   };
 
