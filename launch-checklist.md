@@ -25,7 +25,7 @@
 | 1-1 | 基地のお知らせ欄に「試験運用中」を入れる | `kanri.html` |
 | 1-2 | 規約・ポリシーの残りの「要記入」（公開日）を埋める | `privacy.html`・`terms.html` |
 | 1-3 | ポリシーに「しています」と書いた対策を、本当にしておく | 各サービスの設定 |
-| 1-4 | 運営専用の Gmail（2026-10-12 作成）に二段階認証をかけ、EmailJS と `ADMIN_EMAILS` をそのアドレスに替える | Google アカウント・EmailJS・`setup.sh` |
+| 1-4 | 運営専用の Gmail（2026-10-12 作成）に二段階認証をかけ、EmailJS のテンプレートの宛先をそのアドレスに替える（運営者ページのログインは私用のまま） | Google アカウント・EmailJS |
 | 1-5 | 1-5・1-7・1-8・1-9・1-10・通報の期限・`TERMS_VERSION` の修正をデプロイする（まとめて1回でよい。ルールも含む） | Cloud Shell で `bash setup.sh` |
 | 2 | コンソールの設定を確かめる | Firebase・Google Cloud・GitHub・EmailJS |
 | 3 | 本番で一通り試す（通知メールが最後まで入るか 🆕 を含む） | ブラウザ・メールアプリ |
@@ -114,14 +114,20 @@
   - 受信だけのサービスが多く、処置の通知（利用規約 第8条）やお問い合わせへの返信を送れないおそれがある。メールが一定時間で消えると、異議（14日）や請求（14日）の記録が残らない
 - [ ] 「通知メールを作る」は、端末のいつものメールアプリを開くだけで、差出人はこのサイトからは決められません（`mailto:` のしくみ）。
   送る前に、差出人が運営専用のアドレスになっているか毎回確かめる（運営専用のアカウントを既定にした端末で `kanri.html` を使うと間違えにくい）
-- [ ] EmailJS の Email Services でつないだアカウントと、テンプレートの宛先を運営専用の Gmail にする。
-  いまのサービス（`assets/js/contact.js` の `serviceId`）のつなぎ先を替えれば、コードはそのままです。サービスを新しく作った場合は Service ID が変わるので、`contact.js` の `serviceId` も直す
+- [ ] **必須**：EmailJS のテンプレートの宛先（To Email）を運営専用の Gmail にする。
+  運営専用の Gmail は対応・返信に使うので、お問い合わせもそこに届くようにします。私用のアドレスに届いたまま返信すると、差出人として私用のアドレスが相手に見えてしまいます（テンプレートの Reply To に `{{email}}` を入れているため、返信ボタンでそのまま相手に送れてしまう）
+- [ ] **推奨**：Email Services でつないだアカウント（お問い合わせのメールを送る側）も運営専用の Gmail にする。
+  私用のままでも動き、利用者にも見えません。ただし、送った控えが私用の Gmail の「送信済み」にもたぶん残り（Gmail API で送ったメールには「送信済み」のラベルが自動で付きます。EmailJS の送り方は公表されていないので、テスト送信で確かめる）、お問い合わせの内容が2つのメールボックスに分かれます。私用のままにするなら、1-2 の「1年たったメールを消す」を両方でする。
+  サービスを新しく作ると Service ID が変わるので、`assets/js/contact.js` の `serviceId` も直す
 - [x] **2026-10-12 記入**：そのサービス名・事業者の国・サーバーの国・公表している安全対策を、`privacy.html` 6. に書きました。
   - Gmail（一般向け）は、Google が規約の上でメールの中身を処理できる（迷惑メールの判定など）ため、個人情報保護委員会 Q&A 7-53 の「クラウド事業者が個人データを取り扱わないこととなっている場合」には当たらないと考え、Firebase・EmailJS と同じく外国にある事業者への委託として扱いました（同委員会「クラウドサービス提供事業者が個人情報保護法上の個人情報取扱事業者に該当する場合の留意点について（注意喚起）」2024-03-25 も参照）
   - サーバーの国は、Google が国を選ばせないため「特定できない」とし、Q&A 10-25 に従って、その理由と、Google が公表しているデータセンターの所在国（11か国）と各国の制度を書きました。データセンターが増えたら書き足す
   - 第28条の同意を取るため、`contact.html` と `hiroba.html`（参加登録）の同意の文に Gmail を書き足しました。それより前に登録した人は Gmail の部分に同意していないので、1-1 で運営者・テスト以外の登録がないかを確かめる
 - [ ] 運営者ページのログインはメールのリンクなので、**`ADMIN_EMAILS` のメールボックスを開ける人は運営者になれる** ものとして守る（二段階認証）
-- [ ] ログイン用（`ADMIN_EMAILS`）も運営専用の Gmail に替える：1-5 のデプロイで `bash setup.sh` を実行するとき、「運営者ページにログインするメールアドレス」に Gmail を入れる（前のアドレスが `[ ]` の中に出ていても、そのまま Enter を押さない）。デプロイが済んだら、Gmail で `kanri.html` にログインして「運営者として有効にする」を押す。
+- [x] **2026-10-12 決定**：運営者ページのログイン（`ADMIN_EMAILS`）は、いまの私用のアドレスのままにする。利用者には見えず、ログイン用のメールに利用者の情報は入らないためです。
+  1-5 のデプロイで `bash setup.sh` を実行するときは、「運営者ページにログインするメールアドレス」の `[ ]` の中に出ているいまのアドレスのまま Enter を押す（Cloud Shell のホームフォルダが消えていて何も出ないときは、私用のアドレスを入れ直す）
+- [ ] 私用のアカウントにも **二段階認証** をかけておく（上の「メールボックスを開ける人は運営者になれる」ため。`privacy.html` 7. の「管理画面…を二段階認証で守ります」にも当たります）
+- [ ] 🔎 あとで運営者ページのログインも運営専用の Gmail に替えるときは、`bash setup.sh` で新しいアドレスを入れてデプロイし、新しいアドレスで `kanri.html` の「運営者として有効にする」を押す。
   **古いアカウントの運営者の権限は自動では消えません**（`claimAdmin` は権限を付けるだけで、外す処理はない）。Firebase コンソール →「Authentication」→「ユーザー」から古いアカウントを削除する（そのアカウントで基地に参加登録していたなら、先に退会する）
 - [ ] GitHub のコミットには、作者のメールアドレスが公開の記録として残ります。このリポジトリのマージのコミットには私用の Gmail アドレスが記録されているので、GitHub の設定 →「Emails」→「Keep my email addresses private」をオンにして、これから先のコミットに出ないようにする（過去のコミットの記録は変わりません）
 
@@ -407,11 +413,13 @@ README の手順4で「メール / パスワード」もオンにしているた
 - [Google「Data Center Locations」](https://datacenters.google/locations/)（データセンターの所在国。2026-10 時点で稼働中は11か国）
 - [Google セーフティ センター「Gmail」](https://safety.google/intl/ja_ALL/products/gmail/)（保存中もデータセンター間の送信中も暗号化）
 - [Gmail ヘルプ「Gmail でメールが暗号化される仕組み」](https://support.google.com/mail/answer/6330403?hl=ja)（ほかのメールサービスとは、相手が対応していれば TLS）
+- [Gmail API: Manage labels](https://developers.google.com/workspace/gmail/api/guides/labels)（`messages.send` で送ったメールには SENT〔送信済み〕が自動で付く）
 
 ### EmailJS・配信（公式）
 
 - [EmailJS Pricing](https://www.emailjs.com/pricing/)（履歴は初期設定で保存、テンプレートの設定で止められる。🆕 プランごとの1か月の送信数）
 - [EmailJS Privacy Policy](https://www.emailjs.com/legal/privacy-policy/)
+- [EmailJS: Creating email templates](https://www.emailjs.com/docs/user-guide/creating-email-templates/)（To Email・From Email・Reply To。From は「既定のアドレス」にすると、つないだサービスのアドレスになる）／ [Connecting email services](https://www.emailjs.com/docs/user-guide/connecting-email-services/)
 - [EmailJS: Multi-Factor Authentication](https://www.emailjs.com/docs/user-guide/multi-factor-authentication/)
 - [EmailJS: Can I add my domain to the allowlist?](https://www.emailjs.com/docs/faq/can-i-add-my-domain-to-allowlist/) ／ [Adding CAPTCHA verification](https://www.emailjs.com/docs/user-guide/adding-captcha-verification/)
 - [GitHub Docs: Setting your commit email address](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address)（「Keep my email addresses private」でウェブ上の操作のコミットに noreply アドレスを使う）
