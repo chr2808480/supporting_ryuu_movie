@@ -2,6 +2,7 @@
 
 作成日：**2026-10-12**（main の `3cc86ba` 時点のファイルを読んで作成）
 更新日：**2026-10-12**（main の `ee2f514` 時点で読み直し、テストを実行し直しました。漏れていた項目には 🆕 を付けています。同じ日に、1-7・1-8・通知メール・通報の期限をコードで直しました）
+再確認：**2026-10-12**（main の `e56d8b7` 時点で読み直し、テストを実行し直し、エミュレーターで試しました。新しく見つかった項目には 🔎 を付けています。コードはまだ直していません）
 
 星軍基地（`hiroba.html`）とお問い合わせフォーム（`contact.html`）を正式に公開する前に、確かめることをまとめました。
 上から順に進めてください。
@@ -25,6 +26,8 @@
 | 1-3 | ポリシーに「しています」と書いた対策を、本当にしておく | 各サービスの設定 |
 | 1-4 | 運営専用のメールアドレスを用意する | メール・EmailJS・`setup.sh` |
 | 1-5 | 1-5・1-7・1-8・通報の期限の修正をデプロイする（まとめて1回でよい） | Cloud Shell で `bash setup.sh` |
+| 1-9 | 🔎 利用停止の直後に、本人が処置の記録を消せないようにする（コードの修正） | `functions/index.js`・`firestore.rules` |
+| 1-10 | 🔎 見えない文字で「運営」や他の人に見える表示名を作れないようにする（コードの修正） | `functions/index.js` |
 | 2 | コンソールの設定を確かめる | Firebase・Google Cloud・GitHub・EmailJS |
 | 3 | 本番で一通り試す（通知メールが最後まで入るか 🆕 を含む） | ブラウザ・メールアプリ |
 
@@ -38,6 +41,9 @@
 - **基地はすでに本番の Firebase につながっている**：`assets/js/hiroba-config.js` に接続先が入っています。main を GitHub Pages で配信していれば、`hiroba.html` で本当に登録・投稿ができる状態です（この作業環境からは公開中のページを開けなかったので、ブラウザで確かめてください）。
 - **メールのリンクでのログインは、先回りの乗っ取りに強い**：他人が同じメールアドレスで、確認していないパスワードのアカウントを先に作っていても、メールのリンクでログインした時点でそのパスワードは消されます（Firebase 公式）。この攻撃（account pre-hijacking）は、人気サービス 75 のうち少なくとも 35 で見つかったと報告されていますが（Sudhodanan & Paverd, USENIX Security 2022）、この基地は Firebase のこのしくみで防げています。
 - **ログイン用メールの上限**：Blaze プランでは 1日 25,000 通まで（Spark は 5 通）。基地の規模なら足ります。
+- 🔎 **`e56d8b7` でもテストはすべて合格**：`npm test` 16件と `npm run test:e2e`。`firebase/functions` の `npm audit --omit=dev` も 0件のままです。
+- 🔎 **本番のお知らせ欄はまだ空**：誰でも読める `config/site` を読んでみると、文書がまだありませんでした（1-1 のお知らせが入っていない）。公開されている投稿は 1件（2026-10-12）でした。
+  `hiroba.html` は本番につながると「ページ案（デモ）」の表示を自動で隠し、「基地に参加する」を出します。参加登録を止めるしくみはないので、いまは誰でも「案」の規約のまま登録できます
 
 テストで確かめられないもの（コンソールの設定、メールの届き方、規約の中身、運営体制）が、以下のリストの中心です。
 
@@ -51,6 +57,9 @@
   **2026-10-12 修正**：「試験運用中です。投稿は実際に保存され、誰でも見られます。参加登録は正式公開までお待ちください」に直しました。
   （接続設定を `null` に戻す方法もありますが、そうすると `kanri.html` と本番での動作確認も使えなくなるため、こちらにしました）
 - [ ] `hiroba.html` を直接開いた人には `index.html` の案内が見えないので、`kanri.html` のお知らせ欄に「試験運用中です。正式公開までは参加登録をお待ちください」などを入れる
+  （🔎 2026-10-12 に本番の `config/site` を読んだときは、まだ入っていませんでした）
+- [ ] 🔎 お知らせはお願いにすぎず、登録そのものは止まりません。公開日の前に、Firebase コンソールの「Authentication」→「ユーザー」と Firestore の `users` を見て、運営者・テスト以外の登録がないか確かめる。
+  あれば 1-2 の「すでに『案』のまま登録した人」の扱いを決める
 - [ ] 公開する日に、紹介文を本番用に直す（「8. 公開当日の作業」）
 
 ### 1-2. 規約・ポリシーの「要記入」と「案」を片づける
@@ -157,6 +166,43 @@
   `privacy.html` 2. の保存期間に「利用停止になるまで」、`terms.html` 第8条と基地のルールに「利用停止になると、投稿・返信もすべて削除する（元に戻せない）」と書き足しました
 - [ ] Cloud Shell で `bash setup.sh` を実行してデプロイし直す（1-5 と一緒でよい）
 
+### 1-9. 🔎 利用停止の直後に、本人の古いログインで処置の記録を消せる（コードの修正が必要）
+
+利用停止（`ban`）はログイン情報を削除しますが、本人の手元のログインの証明（ID トークン）は、期限（最長1時間）が来るまで使えます。
+Cloud Functions の呼び出しも Firestore のルールも、トークンが取り消されたかどうかは確かめません（Firebase 公式：ふつうの確認では取り消しを調べない）。
+エミュレーターで、利用停止の直後に本人の古いトークンで試したところ、次のようになりました。
+
+- `deleteAccount`（退会）を呼ぶと、**処置の記録（`moderation`）・`users/{uid}`・表示名の予約（`handles`）が消え**、最後にエラーで止まる。
+  その後、別のメールアドレスで同じ表示名を登録できた（`bans` のハッシュは残るので、同じメールアドレスでの再登録は止まる）
+- `users/{uid}/private/prefs` に書き込めた。利用停止の処理で消したはずの階層がまたでき、TTL ではこの階層は消えない（1-5）
+
+`privacy.html` 2. の「利用停止にしたアカウントの…処置の記録：利用停止から1年」と食い違い、異議や開示請求のときに記録がない、ということになります。
+
+- [ ] `deleteAccount` で、`users/{uid}` の `status` が `banned` なら断る
+- [ ] `firestore.rules` の `private/prefs` の書き込みに、`users/{uid}` があって `status` が `active` であることを足す（未登録の人の書き込みも止まる。下の推奨項目）
+- [ ] テストを足して `npm test` を通し、デプロイする（1-5 と一緒でよい）
+
+### 1-10. 🔎 見えない文字を混ぜると、「運営」や他の人と同じに見える表示名を作れる（コードの修正が必要）
+
+`cleanHandle` は「運営・管理人・公式・admin」と「RyuU」を断りますが、幅のない文字（ゼロ幅スペース U+200B、ゼロ幅接合子 U+200D、語結合子 U+2060 など）は通します。
+エミュレーターで試すと、「運」と「営」の間にゼロ幅スペースを入れた表示名（画面では「運営」）と、すでにある「しずか」にゼロ幅スペースを混ぜた表示名が、どちらも登録できました。
+右から左に並べ替える文字（U+202E）も通ります。利用規約 第7条の「運営者を装って、ログイン用のリンクを聞き出す」を、見た目のうえで止められません。
+
+Unicode の識別子の安全基準（UTS #39）は、こうした「表示されない文字」（Default_Ignorable_Code_Point）を、初めから使えない文字としています。
+
+- [ ] `cleanHandle` で、表示されない文字と書式の文字（正規表現 `\p{Default_Ignorable_Code_Point}` と `\p{Cf}`。`u` フラグが必要）を断る。予約語の判定と `handleKey` も、それらを取り除いた形で行う
+- [ ] テストを足して `npm test` を通し、デプロイする
+- [ ] デプロイ前に登録された表示名に、こうした文字が入っていないか確かめる（いまは登録が少ないので、Firebase コンソールで `handles` を見れば足ります）
+
+### 🔎 推奨：参加登録していない人が、設定の文書に何でも書き込める
+
+`firestore.rules` の `users/{uid}/private/prefs` は「本人なら書ける」だけで、参加登録が済んでいるかと、一覧の中身を確かめていません。
+README の手順4で「メール / パスワード」もオンにしているため、メールアドレスを確かめないアカウントを API から作ることもできます。
+そうしたアカウントでも、最大で約1MB の文書を書けます（エミュレーターで 1万文字の書き込みが通りました）。
+`cleanupUnregistered` はログイン情報だけを消すので、この文書は残り続けます。
+
+- [ ] 1-9 のルールの修正（`users/{uid}` があり `status` が `active`）で一緒に止まる。あわせて、一覧の各項目が `uid` と `handle` だけの短い文字列かも確かめる
+
 ---
 
 ## 2. 必須：Firebase・Google Cloud・GitHub・EmailJS の設定を確かめる
@@ -262,6 +308,8 @@
 - [ ] Twitch のチャンネル名（`research.md` で ⚠️）を本人の導線で確かめる
 - [ ] できれば RyuU さんに「非公式の交流スペースを開きます。問題があれば止めます」と一報する（`operations.md` 1.）
 - [ ] `research.md` の最終調査日を更新する
+- [ ] 🔎 `index.html` の紹介文のうち「JO☆GAMERS という声真似配信者グループ」「中華ゲームや単発ゲーム」「RyuU（りゅう）」の読み、プレイリスト名『ゲーム実況動画ァ！』は、`research.md` に情報源の記録がありません。本人の導線で確かめて、`research.md` に情報源を足す
+- [ ] 🔎 Twitch（`game_ryuu`）は、トップとフッターで公式リンクとして案内しています。2026-10-12 の Web 検索でも本人のものと確かめられませんでした。確かめられるまでは、リンクを外すか「未確認」と添える
 
 ---
 
@@ -303,7 +351,7 @@
 
 ## 8. 公開当日の作業
 
-1. 1-1〜1-8 の修正を main に入れる（`TERMS_VERSION` や関数を変えたら、Cloud Shell で `bash setup.sh` を実行してデプロイし直す）
+1. 1-1〜1-10 の修正を main に入れる（`TERMS_VERSION` や関数を変えたら、Cloud Shell で `bash setup.sh` を実行してデプロイし直す）
 2. `index.html` の基地の紹介（見出しの「準備中」と「試験運用中です…」の一文）を本番用に直す
 3. `hiroba.html` の `noindex` を外すか決める（いまのコメントでは、企画書 第2章に沿って「検索エンジンに載せない・sitemap.xml にも入れない」方針です）。外すなら `sitemap.xml` に `hiroba.html` などを足す
 4. 数分後に、シークレットウィンドウで トップ → 基地 → 参加登録 まで開いて確かめる
@@ -333,6 +381,7 @@
 - 🆕 [Manage functions](https://firebase.google.com/docs/functions/manage-functions)（`functions:artifacts:setpolicy`。初期値は1日より古い部品を削除、Firebase CLI 14 以降）
 - 🆕 [Cloud Run functions runtimes](https://docs.cloud.google.com/run/docs/runtimes/function-runtimes) ／ [Cloud Run runtime lifecycle](https://docs.cloud.google.com/run/docs/runtime-support)（`nodejs22`：2027-04-30 非推奨、2027-10-31 廃止。90日前から通知）
 - 🆕 [Cloud Shell: Quotas and limits](https://docs.cloud.google.com/shell/docs/quotas-limits)（120日開かないとホームフォルダが削除される）
+- 🔎 [Verify ID Tokens](https://firebase.google.com/docs/auth/admin/verify-id-tokens) ／ [Manage User Sessions](https://firebase.google.com/docs/auth/admin/manage-sessions)（ふつうの ID トークンの確認では、取り消しを調べない。ルールで止めるには自分で記録して比べる）
 - 🆕 [Schedule functions](https://firebase.google.com/docs/functions/schedule-functions) ／ [Cloud Scheduler pricing](https://cloud.google.com/scheduler/pricing)（定期処理は Cloud Scheduler のジョブを使う。請求先アカウントごとに月3件まで無料、その後は1件あたり月0.10ドル）
 
 ### EmailJS・配信（公式）
@@ -356,6 +405,11 @@
 - [総務省：プロバイダ責任制限法の免責要件（照会して7日以内に反論がない場合）](https://www.soumu.go.jp/main_content/001012037.pdf)
 - [京都府：情報流通プラットフォーム対処法の概要](https://www.pref.kyoto.jp/koho/dayori/202605/jinken.html)
 - [総務省：電気通信事業参入マニュアル［追補版］（令和5年1月30日改定）](https://www.soumu.go.jp/main_content/000477428.pdf)
+
+### Unicode（表示名）
+
+- 🔎 [UTS #39: Unicode Security Mechanisms](https://www.unicode.org/reports/tr39/)（識別子の一般的な安全基準では、Default_Ignorable_Code_Point を使えない文字とする）
+- 🔎 [UAX #31: Unicode Identifiers and Syntax](https://unicode.org/reports/tr31/)（表示されない文字を使うと、見た目が同じで中身の違う文字列を作れる）
 
 ### 論文
 
