@@ -1,0 +1,13 @@
+{
+  "name": "hiroba-functions",
+  "private": true,
+  "description": "星軍基地（hiroba.html）のサーバー側の処理",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "14.4.0",
+    "firebase-functions": "7.4.0"
+  }
+}

@@ -1,0 +1,93 @@
+rules_version = '2';
+
+// 星軍基地のデータの読み書きの決まり。
+// 書き込みはすべて Cloud Functions（functions/index.js）を通す。例外はミュート・ブロックの設定だけ。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
+    // 一度に読める件数を絞り、大量に読まれて請求が膨らむのを防ぐ
+    function small(n) { return request.query.limit != null && request.query.limit <= n; }
+
+    // お知らせと運営者不在の表示（誰でも読める）
+    match /config/site {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 投稿：公開中のものは誰でも、確認待ちのものは本人と運営者だけが読める
+    match /posts/{postId} {
+      allow get: if resource.data.state == 'public' || isMe(resource.data.authorUid) || isAdmin();
+      allow list: if (resource.data.state == 'public' && small(100))
+                  || (isMe(resource.data.authorUid) && small(100))
+                  || isAdmin();
+      allow write: if false;
+
+      // ★を送った記録は、送った本人だけが読める（誰が送ったかは公開しない）
+      match /stars/{uid} {
+        allow read: if isMe(uid);
+        allow write: if false;
+      }
+    }
+
+    // 返信（posts/{postId}/replies/{replyId}）。まとめて読めるよう、どの深さでも同じ決まりにする
+    match /{path=**}/replies/{replyId} {
+      allow get: if resource.data.state == 'public' || isMe(resource.data.authorUid) || isAdmin();
+      allow list: if (resource.data.state == 'public' && small(300))
+                  || (isMe(resource.data.authorUid) && small(300))
+                  || isAdmin();
+      allow write: if false;
+    }
+
+    match /{path=**}/stars/{uid} {
+      allow read: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // ★の数は、投稿した本人だけに見せる
+    match /postStats/{postId} {
+      allow read: if isMe(resource.data.authorUid) || isAdmin();
+      allow write: if false;
+    }
+
+    // 利用者の記録は本人と運営者だけ。メールアドレスはここには置かない（Firebase Authentication だけが持つ）
+    match /users/{uid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow write: if false;
+
+      // ミュート・ブロック：本人だけが読み書きできる。相手には知らされない
+      match /private/prefs {
+        allow read: if isMe(uid);
+        allow write: if isMe(uid)
+                     && request.resource.data.keys().hasOnly(['muted', 'blocked'])
+                     && request.resource.data.get('muted', []) is list
+                     && request.resource.data.get('blocked', []) is list
+                     && request.resource.data.get('muted', []).size() <= 200
+                     && request.resource.data.get('blocked', []).size() <= 200;
+      }
+      // 返信回数の記録（上限の判定用）
+      match /private/replyLog {
+        allow read: if isMe(uid);
+        allow write: if false;
+      }
+    }
+
+    // 処置の記録：処置を受けた本人と運営者だけ
+    match /moderation/{id} {
+      allow read: if isMe(resource.data.targetUid) || isAdmin();
+      allow write: if false;
+    }
+
+    // 通報：運営者だけ（通報した人が誰かは投稿者に知らせない）
+    match /reports/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // 投稿時の IP と日時（暗号化済み）・表示名の予約・利用停止の照合用ハッシュは、画面からは誰も読めない
+    match /ipLogs/{id} { allow read, write: if false; }
+    match /handles/{key} { allow read, write: if false; }
+    match /bans/{key} { allow read, write: if false; }
+  }
+}

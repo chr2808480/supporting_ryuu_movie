@@ -46,10 +46,16 @@ python3 -m http.server 8000   # → http://localhost:8000
 index.html              サイト本体（1 ページ完結）
 assets/css/style.css    配色・レイアウト
 assets/js/main.js       メニュー / 配信カウントダウン / タグコピー
-hiroba.html             星軍基地（ファン交流スペース）のページ案。デモ動作のみ・noindex（index.html の入軍案内から案内）
-privacy.html            星軍基地のプライバシーポリシー（案）。預かる情報の一覧・noindex
-assets/css/hiroba.css   星軍基地とプライバシーポリシー用のスタイル
-assets/js/hiroba.js     星軍基地のデモ動作（投稿・通報・登録はどこにも送信しない）
+hiroba.html             星軍基地（ファン交流スペース）。Firebase を設定するまではデモ・noindex（index.html の入軍案内から案内）
+terms.html              星軍基地の利用規約（案）。参加登録で同意をもらう・noindex
+privacy.html            星軍基地とお問い合わせフォームのプライバシーポリシー（案）。預かる情報・保存期間・請求の窓口・noindex
+assets/css/hiroba.css   星軍基地・利用規約・プライバシーポリシー用のスタイル
+assets/js/hiroba.js     星軍基地の画面。hiroba-config.js が null ならデモ（どこにも送信しない）
+assets/js/hiroba-config.js    Firebase の接続先（公開して問題ない値）。null ならデモ
+assets/js/hiroba-firebase.js  Firebase とのやりとり（メールリンクのログイン・読み込み・書き込み）
+assets/js/vendor/       Firebase の部品をまとめたもの（firebase/ で npm run build:web）
+kanri.html              運営者ページ（確認待ちの公開・通報・処置・お知らせ）。noindex・どこからもリンクしない
+firebase/               サーバー側（Cloud Functions・Firestore のルール・テスト）。手順は firebase/README.md
 docs/research.md        調査メモ・情報源・確度（更新前に必読）
 docs/operations.md      運営ガイド（非公式サイトとして守ること、更新手順）
 ```
