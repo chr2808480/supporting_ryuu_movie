@@ -1,8 +1,9 @@
 /*!
  * ryuu星軍 本部 — 星軍基地（ページ案）
- * 見た目と動きを確かめるためのデモ。投稿・通報・登録はどこにも送信しない。
- * 本番では、受付時間・往復回数・個人情報らしい文字列・保留の判定をサーバー側の関数で行う
- * （ブラウザ側だけのチェックは簡単にすり抜けられるため）。
+ * hiroba-config.js に接続先がなければデモとして動き、投稿・通報・登録はどこにも送信しない。
+ * 接続先があれば Firebase につなぐ（hiroba-firebase.js）。受付時間・往復回数・個人情報らしい文字列・
+ * 保留の判定はサーバー側の関数でも行う（ブラウザ側だけのチェックは簡単にすり抜けられるため）。
+ * 投稿・返信の authorId は、デモでは表示名、本番では利用者の ID。
  */
 (function () {
   "use strict";
@@ -23,24 +24,31 @@
   function nextId() { seq += 1; return "p" + seq; }
 
   function sample(author, tag, body, ago, extra) {
-    var p = { id: nextId(), author: author, tag: tag, body: body, at: Date.now() - ago, stars: 0, spoiler: false, held: false, replies: [] };
+    var p = { id: nextId(), authorId: author, author: author, tag: tag, body: body, at: Date.now() - ago, stars: 0, spoiler: false, held: false, replies: [] };
     if (extra) Object.keys(extra).forEach(function (k) { p[k] = extra[k]; });
     return p;
   }
   function sampleReply(author, to, body, ago) {
-    return { id: nextId(), author: author, to: to, body: body, at: Date.now() - ago };
+    return { id: nextId(), authorId: author, author: author, toId: to, to: to, body: body, at: Date.now() - ago };
   }
 
+  var live = null;   // Firebase につないだときの窓口（hiroba-firebase.js）。null ならデモ
+
   var state = {
-    me: null,
+    me: null,          // 自分の表示名
+    meId: null,        // 自分の ID（デモでは表示名と同じ）
+    suspendedUntil: 0, // 投稿停止の期限
+    site: { absent: false, news: [] },
+    notices: [],       // 自分が受けた処置
+    loading: false,    // 本番で読み込み中（終わるまで操作を受け付けない。デモの動きに落ちないように）
     demoNight: false,
     demoAbsent: false,
     filter: "all",
-    muted: [],
-    blocked: [],
+    muted: [],         // { id, name }
+    blocked: [],       // { id, name }
     starred: {},
     popStar: null,     // 「オラ！」を弾ませる投稿の id（押した直後だけ）
-    replyLog: [],      // { to: 相手の表示名, at: 時刻 }
+    replyLog: [],      // { to: 相手の ID, at: 時刻 }
     replyingTo: null,  // 返信フォームを開いている投稿の id
     editing: null,     // 編集中の投稿の id
     editWarned: false,
@@ -106,8 +114,9 @@
     return (j.getUTCMonth() + 1) + "月" + j.getUTCDate() + "日";
   }
 
-  function isMine(author) { return !!state.me && author === state.me; }
-  function isHidden(author) { return state.muted.indexOf(author) !== -1 || state.blocked.indexOf(author) !== -1; }
+  function isMine(id) { return !!state.meId && id === state.meId; }
+  function listed(list, id) { return list.some(function (m) { return m.id === id; }); }
+  function isHidden(id) { return listed(state.muted, id) || listed(state.blocked, id); }
   function findPost(id) {
     for (var i = 0; i < state.posts.length; i++) if (state.posts[i].id === id) return state.posts[i];
     return null;
@@ -116,14 +125,16 @@
   /* ------------------------------------------------ 受付時間（毎日23時〜6時と、運営者の不在中は止める） */
   function postingState() {
     var h = jstHour(Date.now());
+    if (state.suspendedUntil > Date.now()) return { open: false, reason: "suspended" };
     if (state.demoNight || h >= CONFIG.closedFrom || h < CONFIG.closedUntil) return { open: false, reason: "night" };
-    if (state.demoAbsent) return { open: false, reason: "absent" };
+    if (state.demoAbsent || state.site.absent) return { open: false, reason: "absent" };
     return { open: true };
   }
 
   var CLOSED_TEXT = {
     night: "ただいま新規投稿をお休みしています（毎日23:00〜6:00・日本時間）。6:00に再開します。閲覧はいつでもできます。",
-    absent: "運営者が不在のため、新規投稿をお休みしています。閲覧はできます。再開はお知らせ欄で告知します。"
+    absent: "運営者が不在のため、新規投稿をお休みしています。閲覧はできます。再開はお知らせ欄で告知します。",
+    suspended: "運営の処置により、投稿を停止しています。期限や理由は、登録したメールアドレスにお送りしています。"
   };
 
   /* ------------------------------------------------ 個人情報らしい文字列（投稿前に警告するだけ。判定は目安） */
@@ -145,10 +156,10 @@
   function hasLink(text) { return /https?:\/\/|www\./i.test(text); }
 
   /* ------------------------------------------------ 返信の上限（同じ相手と24時間で3回まで） */
-  function repliesLeft(to) {
-    if (isMine(to)) return Infinity;
+  function repliesLeft(toId) {
+    if (isMine(toId)) return Infinity;
     var since = Date.now() - CONFIG.replyWindowMs;
-    var used = state.replyLog.filter(function (r) { return r.to === to && r.at > since; }).length;
+    var used = state.replyLog.filter(function (r) { return r.to === toId && r.at > since; }).length;
     return Math.max(0, CONFIG.replyLimit - used);
   }
 
@@ -198,8 +209,8 @@
 
   function renderComposer() {
     var ps = postingState();
-    joinBox.hidden = !!state.me;
-    form.hidden = !state.me;
+    joinBox.hidden = !!state.me || state.loading;
+    form.hidden = !state.me || state.loading;
     if (!state.me) return;
     $("#hb-me-name").textContent = state.me;
     fields.disabled = !ps.open;
@@ -211,8 +222,8 @@
     postsEl.textContent = "";
     var hiddenCount = 0;
     var visible = state.posts.filter(function (p) {
-      if (p.held && !isMine(p.author)) return false;
-      if (isHidden(p.author)) { hiddenCount += 1; return false; }
+      if (p.held && !isMine(p.authorId)) return false;
+      if (isHidden(p.authorId)) { hiddenCount += 1; return false; }
       return state.filter === "all" || p.tag === state.filter;
     });
 
@@ -236,7 +247,7 @@
   }
 
   function renderPost(p) {
-    var mine = isMine(p.author);
+    var mine = isMine(p.authorId);
     var head = el("header", { className: "hb-post-head" }, [
       el("span", { className: "hb-handle", text: p.author }),
       mine ? el("span", { className: "hb-you", text: "あなた" }) : null,
@@ -257,7 +268,7 @@
       article.appendChild(renderActions(p, mine));
     }
 
-    var replies = p.replies.filter(function (r) { return !isHidden(r.author); });
+    var replies = p.replies.filter(function (r) { return !isHidden(r.authorId); });
     if (replies.length) {
       article.appendChild(el("ol", { className: "hb-replies", "aria-label": "返信" }, replies.map(function (r) {
         return renderReply(p, r);
@@ -326,7 +337,7 @@
   }
 
   function renderReply(p, r) {
-    var mine = isMine(r.author);
+    var mine = isMine(r.authorId);
     var actions = el("div", { className: "hb-actions" });
     if (mine) {
       actions.appendChild(el("button", { type: "button", className: "hb-act", "data-action": "delete-reply", "data-id": p.id, "data-reply": r.id, text: "削除" }));
@@ -340,6 +351,7 @@
         el("span", { className: "hb-to", text: "→ " + r.to }),
         el("time", { className: "hb-time", datetime: new Date(r.at).toISOString(), text: timeLabel(r.at) })
       ]),
+      r.held ? el("p", { className: "hb-hold", text: "運営の確認待ち（あなたにだけ表示）：リンクを含む返信は、運営が確認してから公開されます。" }) : null,
       el("p", { className: "hb-body", text: r.body }),
       actions
     ]);
@@ -355,7 +367,7 @@
     }
 
     var ps = postingState();
-    var left = repliesLeft(p.author);
+    var left = repliesLeft(p.authorId);
     var blocked = !ps.open || left === 0;
     var limitText;
     if (!ps.open) limitText = CLOSED_TEXT[ps.reason];
@@ -391,6 +403,10 @@
 
   function renderMenu() {
     menuEl.textContent = "";
+    if (state.loading) {
+      menuEl.appendChild(el("p", { className: "hb-menu-note", text: "読み込んでいます…" }));
+      return;
+    }
     if (!state.me) {
       menuEl.appendChild(el("p", { className: "hb-menu-note" }, ["参加すると、投稿・返信・", starMark(), "・ミュートができます。"]));
       menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
@@ -402,7 +418,8 @@
     var list = el("ul", { className: "hb-menu-list" }, [
       el("li", null, [el("span", { className: "hb-menu-label", text: "表示名" }), el("div", { className: "hb-menu-name", text: state.me })]),
       mutedBlock("ミュート中", state.muted, "unmute"),
-      mutedBlock("ブロック中", state.blocked, "unblock")
+      mutedBlock("ブロック中", state.blocked, "unblock"),
+      state.notices.length ? noticeBlock() : null
     ]);
     menuEl.appendChild(list);
     menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
@@ -411,19 +428,35 @@
     ]));
   }
 
-  function mutedBlock(label, names, action) {
+  function mutedBlock(label, people, action) {
     var li = el("li", null, [el("span", { className: "hb-menu-label", text: label })]);
-    if (!names.length) {
+    if (!people.length) {
       li.appendChild(el("div", { className: "hb-menu-note", text: "なし" }));
       return li;
     }
-    li.appendChild(el("ul", { className: "hb-muted" }, names.map(function (n) {
+    li.appendChild(el("ul", { className: "hb-muted" }, people.map(function (m) {
       return el("li", null, [
-        el("span", { text: n }),
-        el("button", { type: "button", className: "hb-chip", "data-action": action, "data-name": n, "data-key": action + ":" + n, text: "解除" })
+        el("span", { text: m.name }),
+        el("button", { type: "button", className: "hb-chip", "data-action": action, "data-target": m.id, "data-key": action + ":" + m.id, text: "解除" })
       ]);
     })));
     return li;
+  }
+
+  var NOTICE_LABEL = { warn: "運営からの注意", hide: "投稿の非表示", suspend: "7日間の投稿停止", ban: "利用停止" };
+  function dateLabel(t) {
+    var j = new Date(t + JST_OFFSET);
+    return (j.getUTCMonth() + 1) + "月" + j.getUTCDate() + "日";
+  }
+  function noticeBlock() {
+    return el("li", null, [
+      el("span", { className: "hb-menu-label", text: "あなたが受けた処置" }),
+      el("ul", { className: "hb-muted" }, state.notices.map(function (n) {
+        var text = dateLabel(n.at) + " " + (NOTICE_LABEL[n.action] || n.action) + (n.until ? "（" + dateLabel(n.until) + "まで）" : "") + (n.revoked ? "（取り消し）" : "");
+        return el("li", null, [el("span", { text: text + (n.rule ? "：" + n.rule : "") })]);
+      })),
+      el("div", { className: "hb-menu-note", text: "詳しい理由と異議の申立て方は、登録したメールアドレスにお送りしています。" })
+    ]);
   }
 
   function renderDemo() {
@@ -471,12 +504,20 @@
   var nextBtn = $("[data-next]", joinForm);
   var joinMsg = $("#join-msg");
 
-  function openJoin() {
+  var joinSubmit = $('button[type="submit"]', joinForm);
+
+  // 本番で、ログイン済みだが表示名がまだのとき（別の端末でリンクを開いた・表示名が重なった）は、リンクを送らずに登録する
+  function profileOnly() { return !!live && live.data.needsProfile; }
+
+  function openJoin(message) {
     joinForm.reset();
     stepOne.hidden = false;
     stepTwo.hidden = true;
     nextBtn.disabled = true;
-    joinMsg.textContent = "";
+    joinMsg.textContent = message || "";
+    joinForm.elements.email.readOnly = profileOnly();
+    if (profileOnly()) joinForm.elements.email.value = live.email();
+    joinSubmit.textContent = profileOnly() ? "参加する" : "ログイン用リンクを送る";
     openDialog(joinDlg);
   }
 
@@ -499,13 +540,29 @@
     var handle = joinForm.elements.handle.value.trim();
     if (!email.value || !email.checkValidity()) { joinMsg.textContent = "メールアドレスを正しく入力してください。"; email.focus(); return; }
     if (!handle) { joinMsg.textContent = "表示名を入力してください。"; joinForm.elements.handle.focus(); return; }
+    if (detectPII(handle).length) { joinMsg.textContent = "表示名に連絡先や住所らしい文字列が含まれています。"; return; }
+
+    if (live) {
+      joinSubmit.disabled = true;
+      joinMsg.textContent = "";
+      var job = profileOnly()
+        ? live.register(handle).then(reload).then(function () { closeDialog(joinDlg); toast("参加登録が済みました。ようこそ ★"); })
+        : live.sendLink(email.value.trim(), handle).then(function () {
+            closeDialog(joinDlg);
+            toast("ログイン用のリンクを送りました。メールを開いてください");
+          });
+      job.catch(function (err) { joinMsg.textContent = err.message; })
+        .then(function () { joinSubmit.disabled = false; });
+      return;
+    }
+
     if (handle === DEMO_HANDLE || state.posts.some(function (p) { return p.author === handle; })) {
       joinMsg.textContent = "その表示名はすでに使われています。";
       joinForm.elements.handle.focus();
       return;
     }
-    if (detectPII(handle).length) { joinMsg.textContent = "表示名に連絡先や住所らしい文字列が含まれています。"; return; }
     state.me = handle;
+    state.meId = handle;
     closeDialog(joinDlg);
     render();
     toast("（デモ）ログイン用リンクを送ったことにして、ログインしました");
@@ -516,7 +573,10 @@
   var reportForm = $("#report-form");
   var reportMsg = $("#report-msg");
 
-  function openReport(text) {
+  var reportTarget = null;   // { postId, replyId }
+
+  function openReport(text, target) {
+    reportTarget = target;
     reportForm.reset();
     reportMsg.textContent = "";
     $("#report-quote").textContent = text.length > 120 ? text.slice(0, 120) + "…" : text;
@@ -525,6 +585,16 @@
   reportForm.addEventListener("submit", function (e) {
     e.preventDefault();
     if (!reportForm.elements.reason.value) { reportMsg.textContent = "理由を選んでください。"; return; }
+    if (live) {
+      if (!state.me) { closeDialog(reportDlg); openJoin("通報するには参加登録が必要です。"); return; }
+      var btn = $('button[type="submit"]', reportForm);
+      btn.disabled = true;
+      live.report(reportTarget.postId, reportTarget.replyId, reportForm.elements.reason.value, reportForm.elements.note.value.trim())
+        .then(function () { closeDialog(reportDlg); toast("通報を受け付けました。ありがとうございます"); })
+        .catch(function (err) { reportMsg.textContent = err.message; })
+        .then(function () { btn.disabled = false; });
+      return;
+    }
     closeDialog(reportDlg);
     toast("通報を受け付けました。ありがとうございます");
   });
@@ -560,18 +630,39 @@
   function addPost() {
     var tag = form.elements.tag.value;
     var text = bodyEl.value.trim();
+    var spoiler = form.elements.spoiler.checked;
+
+    if (live) {
+      var btn = $('button[type="submit"]', form);
+      btn.disabled = true;
+      live.createPost({ tag: tag, body: text, spoiler: spoiler, piiConfirmed: state.piiAccepted })
+        .then(function (res) {
+          clearComposer(tag);
+          return reload().then(function () {
+            toast(res.state === "held" ? "投稿しました。リンクを含むため、運営の確認後に公開されます" : "投稿しました ★");
+          });
+        })
+        .catch(function (err) { piiBox.hidden = true; showFormError(err.message); })
+        .then(function () { btn.disabled = false; });
+      return;
+    }
+
     var post = {
-      id: nextId(), author: state.me, tag: tag, body: text, at: Date.now(),
-      stars: 0, spoiler: form.elements.spoiler.checked, held: hasLink(text), replies: []
+      id: nextId(), authorId: state.meId, author: state.me, tag: tag, body: text, at: Date.now(),
+      stars: 0, spoiler: spoiler, held: hasLink(text), replies: []
     };
     state.posts.unshift(post);
+    clearComposer(tag);
+    render();
+    toast(post.held ? "投稿しました。リンクを含むため、運営の確認後に公開されます" : "投稿しました ★");
+  }
+
+  function clearComposer(tag) {
     form.reset();
     state.piiAccepted = false;
     piiBox.hidden = true;
     countEl.textContent = "0 / 1000";
     if (state.filter !== "all" && state.filter !== tag) setFilter("all");
-    render();
-    toast(post.held ? "投稿しました。リンクを含むため、運営の確認後に公開されます" : "投稿しました ★");
   }
 
   form.addEventListener("submit", function (e) {
@@ -629,15 +720,28 @@
     if (f.hasAttribute("data-reply-form")) {
       var p = findPost(f.getAttribute("data-reply-form"));
       var text = f.elements.reply.value.trim();
-      if (!p || !postingState().open || repliesLeft(p.author) === 0) return;
+      if (!p || !postingState().open || repliesLeft(p.authorId) === 0) return;
       if (!text) { msg.textContent = "返信の内容を入力してください。"; return; }
       if (detectPII(text).length && !f.hasAttribute("data-warned")) {
         f.setAttribute("data-warned", "");
         msg.textContent = detectPII(text).join("・") + "らしい文字列が含まれています。もう一度押すと、そのまま返信します。";
         return;
       }
-      p.replies.push({ id: nextId(), author: state.me, to: p.author, body: text, at: Date.now() });
-      if (!isMine(p.author)) state.replyLog.push({ to: p.author, at: Date.now() });
+      if (live) {
+        var rb = $('button[type="submit"]', f);
+        rb.disabled = true;
+        live.createReply(p.id, text, f.hasAttribute("data-warned"))
+          .then(function (res) {
+            state.replyingTo = null;
+            return reload().then(function () {
+              toast(res.state === "held" ? "返信しました。リンクを含むため、運営の確認後に公開されます" : "返信しました");
+            });
+          })
+          .catch(function (err) { msg.textContent = err.message; rb.disabled = false; });
+        return;
+      }
+      p.replies.push({ id: nextId(), authorId: state.meId, author: state.me, toId: p.authorId, to: p.author, body: text, at: Date.now() });
+      if (!isMine(p.authorId)) state.replyLog.push({ to: p.authorId, at: Date.now() });
       state.replyingTo = null;
       render();
       toast("返信しました");
@@ -653,6 +757,20 @@
         state.editWarned = true;
         msg.textContent = detectPII(body).join("・") + "らしい文字列が含まれています。この投稿は誰でも見られます。本当に公開しますか？";
         $('button[type="submit"]', f).textContent = "このまま保存する";
+        return;
+      }
+      if (live) {
+        var eb = $('button[type="submit"]', f);
+        eb.disabled = true;
+        live.editPost(post.id, body, state.editWarned)
+          .then(function (res) {
+            state.editing = null;
+            state.editWarned = false;
+            return reload().then(function () {
+              toast(res.state === "held" ? "保存しました。運営の確認後に公開されます" : "保存しました");
+            });
+          })
+          .catch(function (err) { msg.textContent = err.message; eb.disabled = false; });
         return;
       }
       post.body = body;
@@ -671,6 +789,7 @@
       if (!d.contains(e.target)) d.removeAttribute("open");
     });
 
+    if (state.loading) return;
     var opener = e.target.closest("[data-open]");
     if (opener) { openJoin(); return; }
 
@@ -689,6 +808,13 @@
         state.popStar = state.starred[p.id] ? p.id : null;   // 押した直後の1回だけ「オラ！」を弾ませる
         render();
         state.popStar = null;
+        if (live) {
+          live.toggleStar(p.id).catch(function (err) {
+            state.starred[p.id] = !state.starred[p.id];
+            render();
+            toast(err.message);
+          });
+        }
         return;
       case "reply":
         state.replyingTo = state.replyingTo === p.id ? null : p.id;
@@ -700,24 +826,26 @@
       case "report":
         var more = b.closest(".hb-more");
         if (more) { more.removeAttribute("open"); $("summary", more).focus(); }
-        if (p) openReport(p.body);
+        if (p) openReport(p.body, { postId: p.id, replyId: null });
         return;
       case "report-reply":
         var r = p && p.replies.filter(function (x) { return x.id === b.getAttribute("data-reply"); })[0];
-        if (r) openReport(r.body);
+        if (r) openReport(r.body, { postId: p.id, replyId: r.id });
         return;
       case "mute":
       case "block":
         if (!state.me) { openJoin(); return; }
         var list = action === "mute" ? state.muted : state.blocked;
-        if (list.indexOf(p.author) === -1) list.push(p.author);
+        if (!listed(list, p.authorId)) list.push({ id: p.authorId, name: p.author });
+        savePrefs();
         toast(p.author + " さんを" + (action === "mute" ? "ミュート" : "ブロック") + "しました（相手には知らされません）");
         break;
       case "unmute":
       case "unblock":
-        var names = action === "unmute" ? state.muted : state.blocked;
-        var at = names.indexOf(b.getAttribute("data-name"));
-        if (at !== -1) names.splice(at, 1);
+        var target = b.getAttribute("data-target");
+        if (action === "unmute") state.muted = state.muted.filter(function (m) { return m.id !== target; });
+        else state.blocked = state.blocked.filter(function (m) { return m.id !== target; });
+        savePrefs();
         break;
       case "edit":
         state.editing = p.id;
@@ -733,6 +861,7 @@
         break;
       case "delete":
         askConfirm("この投稿を削除しますか？", "削除した投稿は元に戻せません。", "削除する", function () {
+          if (live) { liveRun(live.deletePost(p.id), "削除しました"); return; }
           state.posts = state.posts.filter(function (x) { return x.id !== p.id; });
           render();
           toast("削除しました");
@@ -741,22 +870,29 @@
       case "delete-reply":
         var replyId = b.getAttribute("data-reply");
         askConfirm("この返信を削除しますか？", "削除した返信は元に戻せません。", "削除する", function () {
+          if (live) { liveRun(live.deleteReply(p.id, replyId), "返信を削除しました"); return; }
           p.replies = p.replies.filter(function (x) { return x.id !== replyId; });
           render();
           toast("返信を削除しました");
         });
         return;
       case "logout":
-        state.me = null;
         state.replyingTo = null;
         state.editing = null;
+        if (live) { liveRun(live.logout(), "ログアウトしました"); return; }
+        state.me = null;
+        state.meId = null;
         break;
       case "leave":
         askConfirm("退会しますか？", "あなたの投稿・返信・メールアドレスをすべて削除します。元に戻せません。", "退会する", function () {
-          var me = state.me;
-          state.posts = state.posts.filter(function (x) { return x.author !== me; });
-          state.posts.forEach(function (x) { x.replies = x.replies.filter(function (r) { return r.author !== me; }); });
+          state.replyingTo = null;
+          state.editing = null;
+          if (live) { liveRun(live.leave(), "退会しました。ご利用ありがとうございました"); return; }
+          var me = state.meId;
+          state.posts = state.posts.filter(function (x) { return x.authorId !== me; });
+          state.posts.forEach(function (x) { x.replies = x.replies.filter(function (r) { return r.authorId !== me; }); });
           state.me = null;
+          state.meId = null;
           state.muted = [];
           state.blocked = [];
           state.starred = {};
@@ -775,8 +911,8 @@
 
   function runDemo(kind) {
     if (kind === "login") {
-      if (state.me) { state.me = null; state.replyingTo = null; state.editing = null; }
-      else state.me = DEMO_HANDLE;
+      if (state.me) { state.me = null; state.meId = null; state.replyingTo = null; state.editing = null; }
+      else { state.me = DEMO_HANDLE; state.meId = DEMO_HANDLE; }
     }
     if (kind === "night") state.demoNight = !state.demoNight;
     if (kind === "absent") state.demoAbsent = !state.demoAbsent;
@@ -788,7 +924,76 @@
     if (d.classList && d.classList.contains("hb-spoiler")) state.openSpoilers[d.getAttribute("data-id")] = d.open;
   }, true);   // toggle は親へ伝わらないので、捕捉段階で受け取る
 
-  render();
+  /* ================================================ 本番（Firebase）とのやりとり */
+  function sync() {
+    var d = live.data;
+    state.me = d.me ? d.me.handle : null;
+    state.meId = d.me ? d.me.id : null;
+    state.suspendedUntil = d.me ? d.me.suspendedUntil : 0;
+    state.site = d.site;
+    state.posts = d.posts;
+    state.muted = d.muted;
+    state.blocked = d.blocked;
+    state.starred = d.starred;
+    state.replyLog = d.replyLog;
+    state.notices = d.notices;
+  }
+  function reload() {
+    return live.refresh().then(function () { sync(); render(); renderNews(); });
+  }
+  function liveRun(job, okMessage) {
+    return job.then(reload).then(function () { if (okMessage) toast(okMessage); })
+      .catch(function (err) { toast(err.message); });
+  }
+  function savePrefs() {
+    if (!live) return;
+    live.savePrefs(state.muted, state.blocked).catch(function () { toast("設定を保存できませんでした。もう一度お試しください"); });
+  }
+
+  // お知らせ欄：運営者が kanri.html で書いたものと、毎日のお休みの案内
+  function renderNews() {
+    var list = $(".hb-news-list");
+    if (!list || !live) return;
+    list.textContent = "";
+    state.site.news.forEach(function (n) { list.appendChild(el("li", { text: n })); });
+    list.appendChild(el("li", { text: "毎日23:00〜6:00（日本時間）は新規投稿をお休みします。" }));
+  }
+
+  function boot() {
+    var setup = window.HB_FIREBASE;
+    if (!setup || typeof window.HBLive !== "function") { render(); return; }
+
+    // 本番：デモの表示とサンプルを片づけてから読み込む
+    document.querySelectorAll(".hb-demo").forEach(function (n) { n.hidden = true; });
+    state.posts = [];
+    state.loading = true;
+    render();
+    postsEl.textContent = "";
+    postsEl.appendChild(el("p", { className: "hb-panel hb-empty", text: "読み込んでいます…" }));
+
+    window.HBLive(setup).then(function (backend) {
+      live = backend;
+      state.loading = false;
+      sync();
+      render();
+      renderNews();
+      var signIn = live.signIn;
+      if (signIn.error) {
+        if (live.data.needsProfile) openJoin(signIn.error.message + " 別の表示名で登録してください。");
+        else toast(signIn.error.message);
+      } else if (signIn.result === "registered") {
+        toast("参加登録が済みました。ようこそ ★");
+      } else if (signIn.result === "signed-in") {
+        toast("ログインしました");
+      }
+      if (!signIn.error && live.data.needsProfile) openJoin("表示名を決めて、参加登録を済ませてください。");
+    }).catch(function () {
+      postsEl.textContent = "";
+      postsEl.appendChild(el("p", { className: "hb-panel hb-empty", text: "読み込めませんでした。時間をおいて、ページを開き直してください。" }));
+    });
+  }
+
+  boot();
   // 受付状態と「○分前」の表示を1分ごとに更新する（投稿一覧は作り直さない）
   setInterval(function () {
     renderStatus();

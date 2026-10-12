@@ -268,7 +268,7 @@
         <input class="hb-input" id="join-name" name="handle" type="text" autocomplete="off" maxlength="20" aria-describedby="join-name-hint">
         <p class="cf-note" id="join-name-hint">本名・SNSアカウント・学校名は書かないでください。あとから同じ人の発言だと分かるよう、固定の表示名になります。</p>
       </div>
-      <p class="cf-note">メールアドレスと表示名の使いみち・保存期間は、<a href="privacy.html#p2">プライバシーポリシー</a>のとおりです。</p>
+      <p class="cf-note">送信すると、メールアドレス・表示名・投稿などを、Google LLC（米国の事業者）が提供する Firebase に預けることに同意したものとします。使いみち・保存場所・保存期間は<a href="privacy.html#p6">プライバシーポリシー</a>のとおりです。</p>
       <p class="cf-status is-error" id="join-msg" role="status"></p>
       <div class="hb-dialog-foot">
         <button type="button" class="hb-chip" data-back>戻る</button>
@@ -338,6 +338,8 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="assets/js/main.js"></script>
+<script src="assets/js/hiroba-config.js"></script>
+<script src="assets/js/hiroba-firebase.js"></script>
 <script src="assets/js/hiroba.js"></script>
 </body>
 </html>
