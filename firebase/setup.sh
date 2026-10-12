@@ -41,8 +41,10 @@ if ! db_json=$("${FB[@]}" firestore:databases:get "(default)" --project "$projec
   echo "---- Firebase からの返事（原因の手がかり）----"
   { printf '%s\n' "$db_json"; cat "$db_err"; } | grep -v '^\s*$' | tail -n 15
   echo "----------------------------------------------"
+  echo "このプロジェクトにあるデータベース："
+  "${FB[@]}" firestore:databases:list --project "$project" 2>&1 | tail -n 12 || true
   rm -f "$db_err"
-  fail "プロジェクト $project の Firestore Database を確かめられませんでした。手順3で Firestore を作ったかを確かめてください。作ってあるのに止まるときは、上の「Firebase からの返事」をコピーして Claude に貼ってください。"
+  fail "プロジェクト $project の Firestore Database を確かめられませんでした。手順3で Firestore を作ったかを確かめてください（データベース ID は「(default)」のまま）。作ってあるのに止まるときは、上の表示をコピーして Claude に貼ってください。"
 fi
 rm -f "$db_err"
 location=$(printf '%s' "$db_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);console.log((j.result&&(j.result.locationId||j.result.location))||"")}catch(e){console.log("")}})')
