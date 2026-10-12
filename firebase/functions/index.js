@@ -379,6 +379,12 @@ exports.submitReport = onCall(async (request) => {
   return { ok: true };
 });
 
+// ★を取り消し、投稿の★の数を1つ減らす（投稿が消えていて数を減らせないときは、そのままにする）
+function unstar(writer, star) {
+  writer.delete(star.ref);
+  writer.update(db.doc("postStats/" + star.data().postId), { stars: FieldValue.increment(-1) }).catch(() => {});
+}
+
 /* ------------------------------------------------------------ 退会 */
 
 // 投稿・返信・★・ミュート/ブロック・処置の記録・表示名・メールアドレス（ログイン情報）を消す。
@@ -402,11 +408,7 @@ exports.deleteAccount = onCall(async (request) => {
   const ownPosts = new Set(posts.docs.map((p) => p.id));
   const writer = db.bulkWriter();
   replies.docs.forEach((r) => { if (!ownPosts.has(r.data().postId)) writer.delete(r.ref); });
-  stars.docs.forEach((s) => {
-    if (ownPosts.has(s.data().postId)) return;
-    writer.delete(s.ref);
-    writer.update(db.doc("postStats/" + s.data().postId), { stars: FieldValue.increment(-1) }).catch(() => {});
-  });
+  stars.docs.forEach((s) => { if (!ownPosts.has(s.data().postId)) unstar(writer, s); });
   mods.docs.forEach((m) => writer.delete(m.ref));
   await writer.close();
 
@@ -506,6 +508,13 @@ exports.adminAct = onCall({ secrets: [HIROBA_SECRET] }, async (request) => {
     const old = await db.collection("moderation").where("targetUid", "==", targetUid).get();
     old.docs.forEach((m) => writer.update(m.ref, { expireAt }));
     await writer.commit();
+    // ミュート・ブロック、返信の記録、送った★は、ここで消す。
+    // users/{uid} は1年後に TTL で消えるが、TTL はその下の階層（private）を消さないため（プライバシーポリシー 2.）
+    await db.recursiveDelete(userRef.collection("private"));
+    const stars = await db.collectionGroup("stars").where("uid", "==", targetUid).get();
+    const sw = db.bulkWriter();
+    stars.docs.forEach((s) => unstar(sw, s));
+    await sw.close();
     if (d.deleteContent === true) {
       const posts = await db.collection("posts").where("authorUid", "==", targetUid).get();
       for (const p of posts.docs) { await db.recursiveDelete(p.ref); await db.doc("postStats/" + p.id).delete(); }

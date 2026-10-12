@@ -25,11 +25,12 @@
 ├── assets/
 │   ├── css/style.css       # 配色・レイアウト
 │   └── js/main.js          # メニュー / カウントダウン / タグコピー
-├── docs/
-│   ├── research.md         # 調査メモと情報源（更新前にここを見る）
-│   └── operations.md       # このファイル
+├── research.md             # 調査メモと情報源（更新前にここを見る）
+├── operations.md           # このファイル
 └── README.md
 ```
+
+星軍基地（`hiroba.html` など）と `firebase/` を含む全体の構成は、`README.md` の「構成」を見てください。
 
 ビルド不要の静的サイトです。`index.html` をブラウザで開けばそのまま確認できます。
 
@@ -42,14 +43,14 @@ python3 -m http.server 8000
 
 ## 3. 情報を更新するとき
 
-1. `docs/research.md` の確度表を見る。⚠️ が付いている項目は必ず本人の導線から確認する。
+1. `research.md` の確度表を見る。⚠️ が付いている項目は必ず本人の導線から確認する。
 2. `index.html` の該当箇所を直す。主な編集ポイントは次のとおり。
    - プロフィール → `#about` の `.datalist`
    - 公式リンク → `#links` の `.linkcard`（`href` と `.handle`）
    - 配信時刻 → `#schedule` の `.schedule-time`、および `assets/js/main.js` の `nextStream()`
      （**曜日と時刻は 2 か所**にあります。片方だけ直すとカウントダウンがずれます）
    - 活動の歩み → `#history` の `.timeline`
-3. `#site` セクションと `docs/research.md` の「最終調査日 / 最終更新」を更新する。
+3. `#site` セクションと `research.md` の「最終調査日 / 最終更新」を更新する。
 4. コミットして push。
 
 ### 配信時刻を変更する場合

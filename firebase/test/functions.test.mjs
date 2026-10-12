@@ -189,9 +189,20 @@ test("運営者：登録したメールだけが有効にでき、確認・非�
   assert.equal(info.email, "b@example.com");
   assert.equal(info.history.length, 2);
 
+  const liked = await post(a, "★をもらう投稿");
+  await call("toggleStar", { postId: liked.id }, b);
+  await call("createReply", { postId: liked.id, body: "返信" }, b);
+  await db.doc("users/" + b.uid + "/private/prefs").set({ muted: [{ uid: a.uid, handle: "流れ星" }], blocked: [] });
+
   await call("adminAct", { action: "ban", uid: b.uid, rule: "違反が計3回", deleteContent: true }, admin);
   await assert.rejects(auth.getUser(b.uid));
   assert.equal((await db.collection("posts").where("authorUid", "==", b.uid).get()).size, 0);
+  // ミュート・ブロック、返信の記録、送った★は消す（users/{uid} は TTL で消えても、その下の階層は残るため）
+  assert.equal((await db.doc("users/" + b.uid + "/private/prefs").get()).exists, false);
+  assert.equal((await db.doc("users/" + b.uid + "/private/replyLog").get()).exists, false);
+  assert.equal((await db.doc("posts/" + liked.id + "/stars/" + b.uid).get()).exists, false);
+  assert.equal((await db.doc("postStats/" + liked.id).get()).data().stars, 0);
+  assert.equal((await db.doc("users/" + b.uid).get()).data().status, "banned");
   assert.equal((await db.collection("bans").get()).size, 1);
   const ban = (await db.collection("bans").get()).docs[0];
   assert.ok(!ban.id.includes("example"), "照合用のハッシュだけを残す");
