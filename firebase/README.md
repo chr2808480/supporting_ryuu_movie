@@ -84,10 +84,15 @@ git clone -b claude/laughing-hamilton-dp64zk https://github.com/chr2808480/suppo
 ### 途中で止まったとき
 
 - 「止まりました：」のあとに、何をすればよいかが日本語で出ます。そのとおりにしてから、もう一度実行します。
-- もう一度実行するときは、次の1行を貼って Enter（ファイルはもうコピー済みなので、最初の1行とは違います）。
+- もう一度実行するときは、次の1行を貼って Enter（ファイルはもうコピー済みなので、最初の1行とは違います。プログラムが直っていれば、それも取り込みます）。
   ```bash
-  cd ~/supporting_ryuu_movie/firebase && bash setup.sh
+  cd ~/supporting_ryuu_movie/firebase && git pull && bash setup.sh
   ```
+- 最初の長い1行を2回貼ると、フォルダの中に同じフォルダがもう一つできてしまいます。そうなったら、次の1行で作り直します（消えるのは Cloud Shell の中のコピーだけで、GitHub のものは消えません）。
+  ```bash
+  cd ~ && rm -rf supporting_ryuu_movie && git clone -b claude/laughing-hamilton-dp64zk https://github.com/chr2808480/supporting_ryuu_movie.git && cd supporting_ryuu_movie/firebase && bash setup.sh
+  ```
+- 日本語入力がオンのままでも答えられますが、うまくいかないときはオフ（半角英数）にしてください。
 - 何度実行しても大丈夫です。合言葉は作り直しません。
 - 英語のエラーだけが出て止まったときは、その文字をコピーして Claude に貼ってください。
 

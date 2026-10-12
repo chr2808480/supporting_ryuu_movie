@@ -36,9 +36,15 @@ project=$(ask "プロジェクトID（表示のままでよければ、そのま
 project="${project:-$default_project}"
 
 say "プロジェクト $project の Firestore を確かめています…"
-if ! db_json=$("${FB[@]}" firestore:databases:get "(default)" --project "$project" --json 2>/dev/null); then
-  fail "プロジェクト $project の Firestore Database が見つかりません。プロジェクトIDが合っているか、手順3で Firestore を作ったかを確かめてください。"
+db_err=$(mktemp)
+if ! db_json=$("${FB[@]}" firestore:databases:get "(default)" --project "$project" --json 2>"$db_err"); then
+  echo "---- Firebase からの返事（原因の手がかり）----"
+  { printf '%s\n' "$db_json"; cat "$db_err"; } | grep -v '^\s*$' | tail -n 15
+  echo "----------------------------------------------"
+  rm -f "$db_err"
+  fail "プロジェクト $project の Firestore Database を確かめられませんでした。手順3で Firestore を作ったかを確かめてください。作ってあるのに止まるときは、上の「Firebase からの返事」をコピーして Claude に貼ってください。"
 fi
+rm -f "$db_err"
 location=$(printf '%s' "$db_json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{const j=JSON.parse(s);console.log((j.result&&(j.result.locationId||j.result.location))||"")}catch(e){console.log("")}})')
 if [[ -n "$location" && "$location" != "asia-northeast1" ]]; then
   fail "Firestore の場所が $location になっています。プライバシーポリシーでは東京（asia-northeast1）としているため、このままでは進めません。Claude に相談してください。"
