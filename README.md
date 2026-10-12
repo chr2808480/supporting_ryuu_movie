@@ -27,7 +27,7 @@
 - 公式リンク集
 - 活動の歩み（年表）
 - 応援のはじめ方と、応援マナー（やること / やらないこと）
-- ファン交流スペース「星軍基地」の案内（準備中・デモ版へのリンク）
+- ファン交流スペース「星軍基地」の案内（準備中・試験運用中の基地へのリンク）
 - よくある質問
 
 ## 動かす
@@ -38,7 +38,7 @@
 python3 -m http.server 8000   # → http://localhost:8000
 ```
 
-公開手順（GitHub Pages）は [`docs/operations.md`](docs/operations.md) を参照してください。
+公開手順（GitHub Pages）は [`operations.md`](operations.md) を参照してください。
 
 ## 構成
 
@@ -56,14 +56,15 @@ assets/js/hiroba-firebase.js  Firebase とのやりとり（メールリンク�
 assets/js/vendor/       Firebase の部品をまとめたもの（firebase/ で npm run build:web）
 kanri.html              運営者ページ（確認待ちの公開・通報・処置・お知らせ）。noindex・どこからもリンクしない
 firebase/               サーバー側（Cloud Functions・Firestore のルール・テスト）。手順は firebase/README.md
-docs/research.md        調査メモ・情報源・確度（更新前に必読）
-docs/operations.md      運営ガイド（非公式サイトとして守ること、更新手順）
+launch-checklist.md     星軍基地を正式に公開する前の確認リスト（設定・規約・法令・運営体制）
+research.md             調査メモ・情報源・確度（更新前に必読）
+operations.md           運営ガイド（非公式サイトとして守ること、更新手順）
 ```
 
 ## 情報の更新について
 
 掲載している日付・数値・ハンドル名は変わることがあります。
-どの情報がどこまで裏取りできているかは [`docs/research.md`](docs/research.md) にまとめてあります。
+どの情報がどこまで裏取りできているかは [`research.md`](research.md) にまとめてあります。
 ⚠️ が付いた項目は、公式アカウントの導線から確認したうえで更新してください。
 
 ## 修正・削除のご依頼
