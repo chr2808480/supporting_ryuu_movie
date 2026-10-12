@@ -43,7 +43,8 @@
     return err;
   }
 
-  window.HBLive = async function (setup) {
+  // Firebase の部品を読み込み、接続する（星軍基地と運営者ページで共通）
+  window.HBConnect = async function (setup) {
     await loadScript("assets/js/vendor/firebase-hiroba.js");
     var F = window.HBFirebase;
     var app = F.initializeApp(setup.config);
@@ -57,15 +58,6 @@
       F.connectFunctionsEmulator(fns, "127.0.0.1", 5001);
     }
 
-    var data = {
-      me: null,             // { id, handle, suspendedUntil }
-      needsProfile: false,  // ログインはしたが、表示名をまだ決めていない
-      site: { absent: false, news: [] },
-      posts: [], muted: [], blocked: [], starred: {}, replyLog: [], notices: []
-    };
-
-    function ms(t) { return t && typeof t.toMillis === "function" ? t.toMillis() : 0; }
-
     async function call(name, payload) {
       try {
         return (await F.httpsCallable(fns, name)(payload || {})).data;
@@ -76,6 +68,51 @@
         throw err;
       }
     }
+
+    // メールのリンクから戻ってきたとき：ログインを済ませ、預けていた値（表示名など）を返す
+    async function finishSignIn() {
+      if (!F.isSignInWithEmailLink(auth, location.href)) return null;
+      var clean = location.pathname + location.hash;
+      var pending = readPending();
+      var email = pending && pending.email;
+      if (!email) email = window.prompt("確認のため、ログイン用リンクを受け取ったメールアドレスを入力してください。");
+      if (!email) { history.replaceState(null, "", clean); return null; }
+      try {
+        await F.signInWithEmailLink(auth, email.trim(), location.href);
+      } catch (e) {
+        throw friendly(e);
+      } finally {
+        history.replaceState(null, "", clean);
+      }
+      writePending(null);
+      return pending || {};
+    }
+
+    async function sendLink(email, extra) {
+      try {
+        await F.sendSignInLinkToEmail(auth, email, { url: location.origin + location.pathname, handleCodeInApp: true });
+      } catch (e) {
+        throw friendly(e);
+      }
+      writePending(Object.assign({ email: email }, extra || {}));
+    }
+
+    await auth.authStateReady();
+    return { F: F, auth: auth, db: db, call: call, finishSignIn: finishSignIn, sendLink: sendLink };
+  };
+
+  window.HBLive = async function (setup) {
+    var conn = await window.HBConnect(setup);
+    var F = conn.F, auth = conn.auth, db = conn.db, call = conn.call;
+
+    var data = {
+      me: null,             // { id, handle, suspendedUntil }
+      needsProfile: false,  // ログインはしたが、表示名をまだ決めていない
+      site: { absent: false, news: [] },
+      posts: [], muted: [], blocked: [], starred: {}, replyLog: [], notices: []
+    };
+
+    function ms(t) { return t && typeof t.toMillis === "function" ? t.toMillis() : 0; }
 
     async function loadMe() {
       var user = auth.currentUser;
@@ -166,21 +203,9 @@
 
     // メールのリンクから戻ってきたときの続き。表示名はリンクを送る前に預かっている
     async function finishSignIn() {
-      if (!F.isSignInWithEmailLink(auth, location.href)) return null;
-      var clean = location.pathname + location.hash;
-      var pending = readPending();
-      var email = pending && pending.email;
-      if (!email) email = window.prompt("確認のため、ログイン用リンクを受け取ったメールアドレスを入力してください。");
-      if (!email) { history.replaceState(null, "", clean); return null; }
-      try {
-        await F.signInWithEmailLink(auth, email.trim(), location.href);
-      } catch (e) {
-        throw friendly(e);
-      } finally {
-        history.replaceState(null, "", clean);
-      }
-      writePending(null);
-      if (pending && pending.handle && pending.agreed) {
+      var pending = await conn.finishSignIn();
+      if (!pending) return null;
+      if (pending.handle && pending.agreed) {
         await call("registerProfile", { handle: pending.handle, age16: true, agree: true });
         return "registered";
       }
@@ -188,7 +213,6 @@
     }
 
     var signIn = { result: null, error: null };
-    await auth.authStateReady();
     try { signIn.result = await finishSignIn(); } catch (e) { signIn.error = e; }
     await refresh();
 
@@ -198,14 +222,7 @@
       refresh: refresh,
       email: function () { return auth.currentUser ? auth.currentUser.email : ""; },
 
-      sendLink: async function (email, handle) {
-        try {
-          await F.sendSignInLinkToEmail(auth, email, { url: location.origin + location.pathname, handleCodeInApp: true });
-        } catch (e) {
-          throw friendly(e);
-        }
-        writePending({ email: email, handle: handle, agreed: true });
-      },
+      sendLink: function (email, handle) { return conn.sendLink(email, { handle: handle, agreed: true }); },
       register: function (handle) { return call("registerProfile", { handle: handle, age16: true, agree: true }); },
 
       createPost: function (post) { return call("createPost", post); },

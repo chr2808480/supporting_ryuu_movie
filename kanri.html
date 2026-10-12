@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>運営者ページ ｜ RyuU星軍 本部（非公式ファンクラブ）</title>
+<!-- 運営者だけが使うページ。検索エンジンに載せず、どこからもリンクしない（使えるのは ADMIN_EMAILS に登録したメールだけ） -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90' fill='%23ff4d5e'%3E%E2%98%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/hiroba.css">
+</head>
+<body>
+
+<div class="starfield" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="hiroba.html">
+      <span class="brand-mark" aria-hidden="true">★</span>
+      <span class="brand-text">
+        <strong>星軍基地 運営者ページ</strong>
+        <small>ryuu星軍 本部</small>
+      </span>
+    </a>
+  </div>
+</header>
+
+<main id="main" class="section hb-section">
+  <div class="wrap kn">
+    <h1 class="section-title">　運営者ページ</h1>
+    <p class="kn-status" id="kn-status" role="status" aria-live="polite">読み込んでいます…</p>
+
+    <!-- ログイン -->
+    <form class="hb-panel kn-login" id="kn-login" novalidate hidden>
+      <div class="cf-field">
+        <label for="kn-email">運営者のメールアドレス</label>
+        <input class="hb-input" id="kn-email" type="email" autocomplete="email" required>
+      </div>
+      <button class="btn btn-primary hb-btn" type="submit">ログイン用リンクを送る</button>
+    </form>
+
+    <div class="hb-panel" id="kn-claim" hidden>
+      <p class="hb-menu-note">このアカウントには、まだ運営者の権限がありません。登録したメールアドレスなら、有効にできます。</p>
+      <button class="btn btn-primary hb-btn" type="button" id="kn-claim-btn">運営者として有効にする</button>
+    </div>
+
+    <div id="kn-app" hidden>
+      <section class="kn-block" aria-labelledby="kn-site-title">
+        <h2 class="mini-title" id="kn-site-title">　基地の状態とお知らせ</h2>
+        <form class="hb-panel kn-form" id="kn-site">
+          <label class="hb-check"><input type="checkbox" name="absent"> 運営者不在（新規投稿をお休みにする）</label>
+          <div class="cf-field">
+            <label for="kn-news">お知らせ（1行に1件・5件まで）</label>
+            <textarea class="hb-textarea" id="kn-news" name="news" rows="4"></textarea>
+          </div>
+          <button class="btn btn-primary hb-btn" type="submit">保存する</button>
+        </form>
+      </section>
+
+      <section class="kn-block" aria-labelledby="kn-held-title">
+        <h2 class="mini-title" id="kn-held-title">　確認待ち（リンクを含む投稿・返信）</h2>
+        <div id="kn-held"></div>
+      </section>
+
+      <section class="kn-block" aria-labelledby="kn-reports-title">
+        <h2 class="mini-title" id="kn-reports-title">　未対応の通報</h2>
+        <div id="kn-reports"></div>
+      </section>
+
+      <section class="kn-block" aria-labelledby="kn-hidden-title">
+        <h2 class="mini-title" id="kn-hidden-title">　非表示にした投稿（異議が通ったら戻す）</h2>
+        <div id="kn-hidden"></div>
+      </section>
+
+      <section class="kn-block" aria-labelledby="kn-user-title" id="kn-user-block" hidden>
+        <h2 class="mini-title" id="kn-user-title">　利用者への処置</h2>
+        <div class="hb-panel" id="kn-user"></div>
+      </section>
+
+      <p class="fineprint">
+        処置をしたら、「通知メールを作る」から、どの投稿がどのルールに当たるか・処置の内容と期間・異議の申立て方を本人に送ってください（利用規約 第8条）。
+        投稿時の IP アドレスは、法令に基づく開示請求のときだけ firebase/scripts/decrypt-ip.mjs で読みます。
+      </p>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/js/hiroba-config.js"></script>
+<script src="assets/js/hiroba-firebase.js"></script>
+<script src="assets/js/kanri.js"></script>
+</body>
+</html>

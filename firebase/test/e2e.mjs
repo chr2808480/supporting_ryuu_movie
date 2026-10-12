@@ -129,11 +129,47 @@ try {
   assert.equal(reports.size, 1);
   assert.equal((await db.collection("ipLogs").get()).size, 3);
 
-  // 7. ミュートすると投稿が隠れ、退会するとデータが消える
+  // 7. 運営者ページ：ログイン → 権限を有効にする → 確認待ちを公開 → 通報された投稿を非表示にして通知メールを作る
+  const k = await (await browser.newContext()).newPage();
+  k.on("pageerror", (e) => errors.push(e.message));
+  await k.goto(ORIGIN + "/kanri.html");
+  await k.waitForSelector("#kn-login:not([hidden])");
+  await k.fill("#kn-email", "admin@example.com");
+  await k.click('#kn-login button[type="submit"]');
+  await expectToast(k, /ログイン用のリンクを送りました/);
+  await k.goto((await linkFor("admin@example.com")).replace("/hiroba.html", "/kanri.html"));
+  await k.waitForSelector("#kn-claim:not([hidden])");
+  await k.click("#kn-claim-btn");
+  await k.waitForSelector("#kn-app:not([hidden])");
+  await k.click('#kn-held [data-do="approve"]');
+  await expectToast(k, /公開しました/);
+  await k.click('#kn-reports [data-do="pick"]');
+  await k.waitForSelector("#kn-act");
+  await k.selectOption('#kn-act select[name="action"]', "hide");
+  await k.fill('#kn-act input[name="rule"]', "禁止事項1：個人情報の投稿");
+  await k.fill('#kn-act textarea[name="reason"]', "電話番号が書かれていたため");
+  await k.click('#kn-act button[type="submit"]');
+  await k.waitForSelector("#kn-user a.btn");
+  const mail = decodeURIComponent(await k.getAttribute("#kn-user a.btn", "href"));
+  assert.match(mail, /^mailto:a@example\.com\?subject=/);
+  assert.match(mail, /禁止事項1：個人情報の投稿/);
+  assert.match(mail, /14日以内/);
+  if (process.env.E2E_SHOTS) await k.screenshot({ path: process.env.E2E_SHOTS + "/kanri.png", fullPage: true });
+  await k.click('#kn-reports [data-do="resolve"]');
+  await expectToast(k, /対応済みにしました/);
+
+  // 公開された投稿は別の人にも見え、非表示にした投稿は見えない。処置は本人のメニューに出る
   await b.reload();
-  await b.waitForSelector('.hb-post:has-text("土曜の配信が最高でした")');
-  await b.locator(".hb-post", { hasText: "土曜の配信が最高でした" }).locator("summary").first().click();
-  await b.click('.hb-post:has-text("土曜の配信が最高でした") [data-action="mute"]');
+  await b.waitForSelector('.hb-post:has-text("おすすめ https://example.com/video")');
+  assert.equal(await b.locator('.hb-post:has-text("土曜の配信が最高でした")').count(), 0);
+  await a.reload();
+  await a.waitForSelector("text=あなたが受けた処置");
+  if (process.env.E2E_SHOTS) await a.screenshot({ path: process.env.E2E_SHOTS + "/hiroba-live.png", fullPage: true });
+
+  // 8. ミュートすると投稿が隠れ、退会するとデータが消える
+  const target = '.hb-post:has-text("おすすめ https://example.com/video")';
+  await b.locator(target).locator("summary").first().click();
+  await b.click(target + ' [data-action="mute"]');
   await b.waitForSelector("#hb-hidden-note:not([hidden])");
   await b.reload();
   await b.waitForSelector("#hb-hidden-note:not([hidden])");   // 保存され、開き直しても残る
@@ -143,7 +179,7 @@ try {
   await b.waitForSelector("#hb-join:not([hidden])");
   assert.equal((await db.collectionGroup("replies").where("body", "==", "わかります！").get()).size, 0);
 
-  console.log("e2e: hiroba ok");
+  console.log("e2e: hiroba + kanri ok");
   if (errors.length) throw new Error("ページのエラー: " + errors.join(" / "));
 } finally {
   await browser.close();

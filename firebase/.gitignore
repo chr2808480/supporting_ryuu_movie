@@ -3,3 +3,6 @@ functions/node_modules/
 functions/.secret.local
 *-debug.log
 .firebase/
+# デプロイ時に入力する ADMIN_EMAILS（運営者のメールアドレス）が保存される。公開リポジトリに載せない
+functions/.env.*
+!functions/.env.demo-hiroba

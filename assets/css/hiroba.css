@@ -1,5 +1,5 @@
 /* ==========================================================================
-   星軍基地（ページ案） — hiroba.html・terms.html・privacy.html 用
+   星軍基地（ページ案） — hiroba.html・terms.html・privacy.html・kanri.html 用
    色は style.css の5色（と、そこから作った濃淡）だけを使う
    ========================================================================== */
 
@@ -364,3 +364,14 @@
 .hb-reasons { margin: 0; padding: 0; border: 0; display: grid; gap: .35rem; }
 .hb-reasons label { display: flex; align-items: center; gap: .5rem; font-size: .86rem; cursor: pointer; }
 .hb-reasons input { accent-color: var(--red); margin: 0; }
+
+/* --------------------------------------------------------- 運営者ページ（kanri.html） */
+.kn { max-width: 52rem; }
+.kn-status { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; font-size: .85rem; color: var(--ink-mute); }
+.kn-block { margin-top: 2.2rem; }
+.kn-login, .kn-form { display: grid; gap: .8rem; }
+.kn-form .cf-field { display: grid; gap: .3rem; font-size: .85rem; font-weight: 700; color: var(--ink-mute); }
+.kn-item { display: grid; gap: .45rem; margin-bottom: .8rem; }
+.kn-meta { margin: 0; font-size: .78rem; color: var(--ink-mute); }
+.kn-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.kn-history { margin: 0 0 .6rem; padding-left: 1.2rem; font-size: .8rem; color: var(--ink-mute); }
