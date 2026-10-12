@@ -211,8 +211,28 @@
 
     if (done) {
       box.appendChild(el("p", { className: "hb-menu-note", text: "記録しました。本人に通知してください。" }));
-      if (info.email) box.appendChild(el("a", { className: "btn btn-primary hb-btn", href: mailto(info, done), text: "通知メールを作る" }));
-      else box.appendChild(el("p", { className: "hb-menu-note", text: "メールアドレスが残っていないため、通知できません。" }));
+      if (!info.email) {
+        box.appendChild(el("p", { className: "hb-menu-note", text: "メールアドレスが残っていないため、通知できません。" }));
+        return;
+      }
+      // メールアプリを開くリンクは、日本語の本文だと数千文字になり、アプリによっては途中で切れる。
+      // 異議の申立て方は本文の最後にあるので、同じ本文をここにも出し、コピーして貼り付けられるようにする
+      picked.notice = notice(info, done);
+      box.appendChild(el("a", { className: "btn btn-primary hb-btn", href: mailto(picked.notice), text: "通知メールを作る" }));
+      box.appendChild(el("p", { className: "hb-menu-note", text:
+        "メールアプリで、本文が最後の「" + SIGNATURE + "」まで入っているか確かめてから送ってください。切れていたり、メールアプリが開かなかったりしたときは、下の宛先・件名・本文をコピーして、運営用のメールから送ってください。" }));
+      var body = el("textarea", { className: "hb-textarea", id: "kn-notice-body", rows: 12, readonly: true, "aria-label": "通知メールの本文" });
+      body.value = picked.notice.body;
+      box.appendChild(el("dl", { className: "kn-notice" }, [
+        el("dt", { text: "宛先" }), el("dd", { text: picked.notice.to }),
+        el("dt", { text: "件名" }), el("dd", { text: picked.notice.subject })
+      ]));
+      box.appendChild(body);
+      box.appendChild(el("div", { className: "kn-buttons" }, [
+        el("button", { type: "button", className: "hb-chip", "data-copy": "to", text: "宛先をコピー" }),
+        el("button", { type: "button", className: "hb-chip", "data-copy": "subject", text: "件名をコピー" }),
+        el("button", { type: "button", className: "hb-chip", "data-copy": "body", text: "本文をコピー" })
+      ]));
       return;
     }
 
@@ -236,7 +256,7 @@
         el("span", { text: "理由（本人への通知に書く）" }),
         el("textarea", { className: "hb-textarea", name: "reason", rows: 3 })
       ]),
-      el("label", { className: "hb-check" }, [el("input", { type: "checkbox", name: "deleteContent" }), " 利用停止のとき、投稿・返信もすべて削除する"]),
+      el("p", { className: "hb-menu-note", text: "利用停止にすると、ログイン情報と、その人の投稿・返信がすべて削除されます（元に戻せません）。" }),
       el("div", { className: "kn-buttons" }, [
         el("button", { type: "submit", className: "btn btn-primary hb-btn", text: "記録する" }),
         el("button", { type: "button", className: "hb-chip", "data-close-user": "", text: "閉じる" })
@@ -246,19 +266,38 @@
   }
 
   $("#kn-user").addEventListener("click", function (e) {
-    if (e.target.closest("[data-close-user]")) { $("#kn-user-block").hidden = true; picked = null; }
+    if (e.target.closest("[data-close-user]")) { $("#kn-user-block").hidden = true; picked = null; return; }
+    var copy = e.target.closest("[data-copy]");
+    if (copy && picked && picked.notice) copyText(picked.notice[copy.getAttribute("data-copy")]);
   });
+
+  function copyText(text) {
+    function fallback() {
+      var area = $("#kn-notice-body");
+      var keep = area.value;
+      area.value = text;
+      area.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      area.value = keep;
+      toast(ok ? "コピーしました" : "コピーできませんでした。本文の欄を長押し（右クリック）してコピーしてください");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast("コピーしました"); }, fallback);
+    } else {
+      fallback();
+    }
+  }
   $("#kn-user").addEventListener("submit", function (e) {
     e.preventDefault();
     var f = e.target;
     var act = {
       action: f.elements.action.value, rule: f.elements.rule.value.trim(), reason: f.elements.reason.value.trim(),
       uid: picked.uid, postId: f.elements.action.value === "hide" ? picked.postId : null,
-      replyId: f.elements.action.value === "hide" ? picked.replyId : null,
-      deleteContent: f.elements.deleteContent.checked
+      replyId: f.elements.action.value === "hide" ? picked.replyId : null
     };
     if (act.action !== "lift" && !act.rule) { toast("当たるルールを書いてください"); return; }
-    if (act.action === "ban" && !window.confirm(picked.info.handle + " さんを利用停止にします。ログイン情報は削除され、元に戻せません。")) return;
+    if (act.action === "ban" && !window.confirm(picked.info.handle + " さんを利用停止にします。ログイン情報と、投稿・返信がすべて削除され、元に戻せません。")) return;
     f.querySelector('button[type="submit"]').disabled = true;
     conn.call("adminAct", act).then(function (res) {
       act.until = res && res.until;
@@ -272,7 +311,8 @@
   });
 
   // 利用規約 第8条：どの投稿がどのルールに当たるか・処置の内容と期間・異議の申立て方を知らせる
-  function mailto(info, act) {
+  var SIGNATURE = "ryuu星軍 本部 運営";
+  function notice(info, act) {
     var base = location.href.replace(/kanri\.html.*$/, "");
     var undo = act.action === "lift" || act.action === "restore";
     var lines = [
@@ -289,7 +329,10 @@
         ""
       );
     }
-    lines.push("ryuu星軍 本部 運営");
-    return "mailto:" + encodeURIComponent(info.email) + "?subject=" + encodeURIComponent("【星軍基地】運営からのお知らせ") + "&body=" + encodeURIComponent(lines.join("\n"));
+    lines.push(SIGNATURE);
+    return { to: info.email, subject: "【星軍基地】運営からのお知らせ", body: lines.join("\n") };
+  }
+  function mailto(n) {
+    return "mailto:" + encodeURIComponent(n.to) + "?subject=" + encodeURIComponent(n.subject) + "&body=" + encodeURIComponent(n.body);
   }
 })();

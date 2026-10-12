@@ -8,6 +8,7 @@
 const crypto = require("node:crypto");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
@@ -41,7 +42,9 @@ const RULES = {
   suspendMs: 7 * DAY,                // 投稿停止の期間
   ipRetentionMs: 90 * DAY,           // 投稿時の IP と日時（プライバシーポリシー 2.）
   reportRetentionMs: 90 * DAY,       // 対応を終えた通報
-  banRetentionMs: 365 * DAY          // 利用停止にしたアカウントの記録
+  openReportRetentionMs: 180 * DAY,  // 対応しないままの通報（通報した日から）
+  banRetentionMs: 365 * DAY,         // 利用停止にしたアカウントの記録
+  unregisteredRetentionMs: 7 * DAY   // 参加登録を済ませないままのログイン情報（最後に使った日から）
 };
 const TERMS_VERSION = "2026-10-案";   // 利用規約を改めたら上げる（同意の記録に残る）
 const TAGS = ["感想", "おすすめ動画", "質問", "雑談"];
@@ -373,7 +376,8 @@ exports.submitReport = onCall(async (request) => {
   if (last && t - last < 5000) throw fail("resource-exhausted", "少し時間をおいてから、もう一度お試しください。", "interval");
   await db.collection("reports").add({
     reporterUid: uid, postId, replyId, targetUid: target.data().authorUid,
-    excerpt: target.data().body.slice(0, 200), reason, note, status: "open", createdAt: ts(t)
+    excerpt: target.data().body.slice(0, 200), reason, note, status: "open", createdAt: ts(t),
+    expireAt: ts(t + RULES.openReportRetentionMs)   // 対応済みにすると、その日から90日に置き換える
   });
   await ref.update({ lastReportAt: ts(t) });
   return { ok: true };
@@ -515,14 +519,13 @@ exports.adminAct = onCall({ secrets: [HIROBA_SECRET] }, async (request) => {
     const sw = db.bulkWriter();
     stars.docs.forEach((s) => unstar(sw, s));
     await sw.close();
-    if (d.deleteContent === true) {
-      const posts = await db.collection("posts").where("authorUid", "==", targetUid).get();
-      for (const p of posts.docs) { await db.recursiveDelete(p.ref); await db.doc("postStats/" + p.id).delete(); }
-      const replies = await db.collectionGroup("replies").where("authorUid", "==", targetUid).get();
-      const w = db.bulkWriter();
-      replies.docs.forEach((r) => w.delete(r.ref));
-      await w.close();
-    }
+    // 投稿・返信も消す。本人はもうログインできず、自分では消せないため（プライバシーポリシー 2.）
+    const posts = await db.collection("posts").where("authorUid", "==", targetUid).get();
+    for (const p of posts.docs) { await db.recursiveDelete(p.ref); await db.doc("postStats/" + p.id).delete(); }
+    const replies = await db.collectionGroup("replies").where("authorUid", "==", targetUid).get();
+    const w = db.bulkWriter();
+    replies.docs.forEach((r) => w.delete(r.ref));
+    await w.close();
     // ログイン情報（メールアドレス）は消す。照合用には復元できないハッシュだけを残す
     if (authUser) await getAuth().deleteUser(targetUid);
     return { ok: true };
@@ -580,4 +583,37 @@ exports.adminSetSite = onCall(async (request) => {
   const news = Array.isArray(d.news) ? d.news.map((s) => str(s).trim().slice(0, 200)).filter(Boolean).slice(0, RULES.newsMax) : [];
   await db.doc("config/site").set({ absent: d.absent === true, news }, { merge: true });
   return { ok: true };
+});
+
+/* ------------------------------------------------------------ 定期処理 */
+
+// メールのリンクでログインしたまま参加登録を済ませず、最後に使ってから7日たったアカウント（メールアドレス）を消す
+// （プライバシーポリシー 2.）。運営者（権限を持つ人と ADMIN_EMAILS のメールアドレス）は消さない
+async function cleanupUnregistered(t) {
+  const admins = adminEmails(ADMIN_EMAILS.value());
+  const cutoff = t - RULES.unregisteredRetentionMs;
+  const stale = [];
+  let pageToken;
+  do {
+    const page = await getAuth().listUsers(1000, pageToken);
+    const idle = page.users.filter((u) => {
+      if (u.customClaims && u.customClaims.admin === true) return false;
+      if (u.email && admins.includes(u.email.toLowerCase())) return false;
+      const m = u.metadata;
+      const last = Math.max(Date.parse(m.creationTime) || 0, Date.parse(m.lastSignInTime) || 0, Date.parse(m.lastRefreshTime) || 0);
+      return last < cutoff;
+    });
+    if (idle.length) {
+      const profiles = await db.getAll(...idle.map((u) => db.doc("users/" + u.uid)));
+      profiles.forEach((p, i) => { if (!p.exists) stale.push(idle[i].uid); });
+    }
+    pageToken = page.pageToken;
+  } while (pageToken);
+  for (let i = 0; i < stale.length; i += 1000) await getAuth().deleteUsers(stale.slice(i, i + 1000));
+  return stale.length;
+}
+
+exports.cleanupUnregistered = onSchedule({ schedule: "every day 04:00", timeZone: "Asia/Tokyo" }, async (event) => {
+  const removed = await cleanupUnregistered(Date.parse(event.scheduleTime) || Date.now());
+  if (removed) console.log("参加登録のないアカウントを削除しました：" + removed + "件");
 });

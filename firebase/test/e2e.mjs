@@ -6,7 +6,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join as joinPath, normalize } from "node:path";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
-import { db, PROJECT } from "./helpers.mjs";
+import { db, auth, PROJECT } from "./helpers.mjs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const PORT = 8765;
@@ -154,6 +154,15 @@ try {
   assert.match(mail, /^mailto:a@example\.com\?subject=/);
   assert.match(mail, /禁止事項1：個人情報の投稿/);
   assert.match(mail, /14日以内/);
+  // メールアプリで本文が切れたときのために、同じ本文をコピーできる
+  const body = await k.inputValue("#kn-notice-body");
+  assert.match(body, /14日以内/);
+  assert.match(body, /ryuu星軍 本部 運営$/);
+  assert.equal(await k.textContent("#kn-user .kn-notice dd"), "a@example.com");
+  await k.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: ORIGIN });
+  await k.click('#kn-user [data-copy="body"]');
+  await expectToast(k, /コピーしました/);
+  assert.equal(await k.evaluate(() => navigator.clipboard.readText()), body);
   if (process.env.E2E_SHOTS) await k.screenshot({ path: process.env.E2E_SHOTS + "/kanri.png", fullPage: true });
   await k.click('#kn-reports [data-do="resolve"]');
   await expectToast(k, /対応済みにしました/);
@@ -178,6 +187,32 @@ try {
   await expectToast(b, /退会しました/);
   await b.waitForSelector("#hb-join:not([hidden])");
   assert.equal((await db.collectionGroup("replies").where("body", "==", "わかります！").get()).size, 0);
+
+  // 9. 別の端末でリンクを開き（メールアドレスを聞かれる）、参加登録をせずに「登録をやめる」とメールアドレスが消える
+  const c1 = await (await browser.newContext()).newPage();
+  await c1.goto(ORIGIN + "/hiroba.html");
+  await c1.waitForSelector("#hb-join:not([hidden])");
+  await c1.click('#hb-join [data-open="join"]');
+  await c1.check('input[name="age"]');
+  await c1.check('input[name="agree"]');
+  await c1.click("[data-next]");
+  await c1.fill("#join-email", "c@example.com");
+  await c1.fill("#join-name", "流星群");
+  await c1.click('#join-form button[type="submit"]');
+  await c1.waitForFunction(() => !document.getElementById("dlg-join").open);
+  const c2 = await (await browser.newContext()).newPage();
+  c2.on("pageerror", (e) => errors.push(e.message));
+  c2.on("dialog", (d) => d.accept("c@example.com"));
+  await c2.goto(await linkFor("c@example.com"));
+  await c2.waitForFunction(() => document.getElementById("dlg-join").open);   // 表示名を決めるよう案内される
+  await c2.click('#dlg-join [data-step="1"] button[data-close]');
+  await c2.waitForSelector("#hb-menu >> text=参加登録がまだ済んでいません");
+  const pendingUid = (await auth.getUserByEmail("c@example.com")).uid;
+  await c2.click('#hb-menu [data-action="leave"]');
+  await c2.click("#dlg-confirm-ok");
+  await expectToast(c2, /メールアドレスを削除しました/);
+  await c2.waitForSelector("#hb-join:not([hidden])");
+  await assert.rejects(auth.getUser(pendingUid));
 
   console.log("e2e: hiroba + kanri ok");
   if (errors.length) throw new Error("ページのエラー: " + errors.join(" / "));

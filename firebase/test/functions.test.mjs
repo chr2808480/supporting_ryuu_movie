@@ -1,6 +1,7 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { db, auth, call, signIn, member, reasonOf, reset, at, tick, NOON, NIGHT, HOUR } from "./helpers.mjs";
+import { createRequire } from "node:module";
+import { db, auth, call, signIn, member, reasonOf, reset, at, tick, NOON, NIGHT, HOUR, PROJECT } from "./helpers.mjs";
 
 beforeEach(reset);
 
@@ -194,9 +195,11 @@ test("運営者：登録したメールだけが有効にでき、確認・非�
   await call("createReply", { postId: liked.id, body: "返信" }, b);
   await db.doc("users/" + b.uid + "/private/prefs").set({ muted: [{ uid: a.uid, handle: "流れ星" }], blocked: [] });
 
-  await call("adminAct", { action: "ban", uid: b.uid, rule: "違反が計3回", deleteContent: true }, admin);
+  // 投稿・返信は、指定しなくても消す（本人はもうログインできず、自分では消せないため）
+  await call("adminAct", { action: "ban", uid: b.uid, rule: "違反が計3回" }, admin);
   await assert.rejects(auth.getUser(b.uid));
   assert.equal((await db.collection("posts").where("authorUid", "==", b.uid).get()).size, 0);
+  assert.equal((await db.collectionGroup("replies").where("authorUid", "==", b.uid).get()).size, 0);
   // ミュート・ブロック、返信の記録、送った★は消す（users/{uid} は TTL で消えても、その下の階層は残るため）
   assert.equal((await db.doc("users/" + b.uid + "/private/prefs").get()).exists, false);
   assert.equal((await db.doc("users/" + b.uid + "/private/replyLog").get()).exists, false);
@@ -215,6 +218,9 @@ test("運営者：登録したメールだけが有効にでき、確認・非�
   const r = await post(a, "通報される");
   await call("submitReport", { postId: r.id, reason: "その他" }, c);
   const report = (await db.collection("reports").get()).docs[0];
+  // 対応しないままでも、通報から180日で消える。対応済みにすると、その日から90日に置き換える
+  const open = report.data();
+  assert.equal(open.expireAt.toMillis() - open.createdAt.toMillis(), 180 * 24 * HOUR);
   await call("adminResolveReport", { reportId: report.id }, admin);
   const x = (await report.ref.get()).data();
   assert.equal(x.status, "resolved");
@@ -222,4 +228,27 @@ test("運営者：登録したメールだけが有効にでき、確認・非�
 
   await call("adminSetSite", { absent: true, news: ["お知らせ1", "", "お知らせ2"] }, admin);
   assert.deepEqual((await db.doc("config/site").get()).data(), { absent: true, news: ["お知らせ1", "お知らせ2"] });
+});
+
+// 定期処理（毎日4時）は、エミュレーターでは時刻どおりに動かないので、関数を読み込んで直接実行する。
+// scheduleTime を先の日付にして、日数がたったときの動きを確かめる
+function scheduled(name) {
+  process.env.GCLOUD_PROJECT = process.env.GCLOUD_PROJECT || PROJECT;
+  process.env.ADMIN_EMAILS = "admin@example.com";
+  const fns = createRequire(import.meta.url)("../functions/index.js");
+  return (daysLater) => fns[name].run({ scheduleTime: new Date(Date.now() + daysLater * 24 * HOUR).toISOString() });
+}
+
+test("定期処理：参加登録のないまま7日たったアカウントを消す（運営者は消さない）", async () => {
+  const cleanup = scheduled("cleanupUnregistered");
+  const a = await member("a@example.com", "流れ星");                    // 参加登録済み
+  const pending = await signIn("pending@example.com");                  // ログインだけして、登録していない
+  const admin = await signIn("admin@example.com");                      // ADMIN_EMAILS（権限を有効にする前）
+  const helper = await signIn("helper@example.com", { admin: true });   // 運営者の権限を持つ
+
+  await cleanup(1);
+  await auth.getUser(pending.uid);   // まだ7日たっていない
+  await cleanup(8);
+  await assert.rejects(auth.getUser(pending.uid));
+  for (const u of [a, admin, helper]) await auth.getUser(u.uid);
 });
