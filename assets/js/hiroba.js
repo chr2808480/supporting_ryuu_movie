@@ -408,6 +408,17 @@
       return;
     }
     if (!state.me) {
+      // 本番で、ログインはしたが参加登録がまだのとき：登録しないなら、メールアドレスをここで消せる（7日たつと自動でも消す）
+      if (profileOnly()) {
+        menuEl.appendChild(el("p", { className: "hb-menu-note", text: live.email() + " でログイン中です。参加登録がまだ済んでいません。" }));
+        menuEl.appendChild(el("p", { className: "hb-menu-note", text: "登録しない場合は「登録をやめる」でメールアドレスを削除できます。そのままでも、7日たつと自動で削除します。" }));
+        menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
+          el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "参加登録を続ける" }),
+          el("button", { type: "button", className: "hb-chip", "data-action": "logout", text: "ログアウト" }),
+          el("button", { type: "button", className: "hb-chip is-danger", "data-action": "leave", text: "登録をやめる" })
+        ]));
+        return;
+      }
       menuEl.appendChild(el("p", { className: "hb-menu-note" }, ["参加すると、投稿・返信・", starMark(), "・ミュートができます。"]));
       menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
         el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })
@@ -884,6 +895,12 @@
         state.meId = null;
         break;
       case "leave":
+        if (profileOnly()) {
+          askConfirm("参加登録をやめますか？", "ログインに使ったメールアドレスを削除します。参加するときは、もう一度はじめから登録してください。", "登録をやめる", function () {
+            liveRun(live.leave(), "メールアドレスを削除しました");
+          });
+          return;
+        }
         askConfirm("退会しますか？", "あなたの投稿・返信・メールアドレスをすべて削除します。元に戻せません。", "退会する", function () {
           state.replyingTo = null;
           state.editing = null;

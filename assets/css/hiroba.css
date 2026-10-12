@@ -375,3 +375,6 @@
 .kn-meta { margin: 0; font-size: .78rem; color: var(--ink-mute); }
 .kn-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .kn-history { margin: 0 0 .6rem; padding-left: 1.2rem; font-size: .8rem; color: var(--ink-mute); }
+.kn-notice { display: grid; grid-template-columns: auto 1fr; gap: .2rem .8rem; margin: 0; font-size: .85rem; }
+.kn-notice dt { color: var(--ink-mute); }
+.kn-notice dd { margin: 0; overflow-wrap: anywhere; }

@@ -1,6 +1,7 @@
 # 正式運用前の確認リスト（星軍基地・お問い合わせフォーム）
 
 作成日：**2026-10-12**（main の `3cc86ba` 時点のファイルを読んで作成）
+更新日：**2026-10-12**（main の `ee2f514` 時点で読み直し、テストを実行し直しました。漏れていた項目には 🆕 を付けています。同じ日に、1-7・1-8・通知メール・通報の期限をコードで直しました）
 
 星軍基地（`hiroba.html`）とお問い合わせフォーム（`contact.html`）を正式に公開する前に、確かめることをまとめました。
 上から順に進めてください。
@@ -15,11 +16,25 @@
 > 法令にかかわる項目は、公的機関の資料をもとにした整理で、法的な助言ではありません。
 > 判断に迷うときは、弁護士などの専門家に確かめてください。
 
+### まだ済んでいない必須項目（ひと目で）
+
+| | やること | どこで |
+| --- | --- | --- |
+| 1-1 | 基地のお知らせ欄に「試験運用中」を入れる | `kanri.html` |
+| 1-2 | 規約・ポリシーの「要記入」と「案」を片づけ、`TERMS_VERSION` を確定版にする | `privacy.html`・`terms.html`・`functions/index.js` |
+| 1-3 | ポリシーに「しています」と書いた対策を、本当にしておく | 各サービスの設定 |
+| 1-4 | 運営専用のメールアドレスを用意する | メール・EmailJS・`setup.sh` |
+| 1-5 | 1-5・1-7・1-8・通報の期限の修正をデプロイする（まとめて1回でよい） | Cloud Shell で `bash setup.sh` |
+| 2 | コンソールの設定を確かめる | Firebase・Google Cloud・GitHub・EmailJS |
+| 3 | 本番で一通り試す（通知メールが最後まで入るか 🆕 を含む） | ブラウザ・メールアプリ |
+
 ---
 
 ## 0. いまの状態（2026-10-12 に確かめたこと）
 
-- **テストはすべて合格**：エミュレーターでのルール・関数のテスト 15件（`npm test`）と、画面を通した確認（`npm run test:e2e`）。
+- **テストはすべて合格**（`ee2f514` で実行し直しました）：エミュレーターでのルール・関数のテスト 15件（`npm test`）と、画面を通した確認（`npm run test:e2e`。星軍基地と運営者ページ）。
+- 🆕 **サーバー側の部品に、既知の脆弱性はなし**：`firebase/functions` で `npm audit --omit=dev` の結果は 0件です。
+  手元で使う道具（`firebase/` の firebase-tools やテスト用の部品）には、既知の脆弱性の報告が 17件あります。これらはデプロイされません。ブラウザ用の部品（`assets/js/vendor/firebase-hiroba.js`）には、報告のあった `@grpc/grpc-js`（Node.js 用）が入っていないことも確かめました。
 - **基地はすでに本番の Firebase につながっている**：`assets/js/hiroba-config.js` に接続先が入っています。main を GitHub Pages で配信していれば、`hiroba.html` で本当に登録・投稿ができる状態です（この作業環境からは公開中のページを開けなかったので、ブラウザで確かめてください）。
 - **メールのリンクでのログインは、先回りの乗っ取りに強い**：他人が同じメールアドレスで、確認していないパスワードのアカウントを先に作っていても、メールのリンクでログインした時点でそのパスワードは消されます（Firebase 公式）。この攻撃（account pre-hijacking）は、人気サービス 75 のうち少なくとも 35 で見つかったと報告されていますが（Sudhodanan & Paverd, USENIX Security 2022）、この基地は Firebase のこのしくみで防げています。
 - **ログイン用メールの上限**：Blaze プランでは 1日 25,000 通まで（Spark は 5 通）。基地の規模なら足ります。
@@ -54,7 +69,8 @@
 
 - [ ] 上の表をすべて埋める
 - [ ] 異議の期限を 14日以外にするときは、`assets/js/kanri.js` の通知メールの文（「14日以内」と直接書いてある）も同じ日数に直す
-- [ ] 「案」の囲みと、`<title>`・フッターの「（案）」を外す（`hiroba.html`・`terms.html`・`privacy.html`）
+- [ ] 「案」の囲みと、`<title>`・フッターの「（案）」を外す（`hiroba.html`・`terms.html`・`privacy.html`）。
+  🆕 `hiroba.html` の説明文（`<meta name="description">`）にある「ページ案です」も直す
 - [ ] `firebase/functions/index.js` の `TERMS_VERSION`（いまは `"2026-10-案"`）を確定版の名前（例：制定日）に変えて、デプロイし直す。
   同意の記録に残る値なので、すでに「案」のまま登録した人がいれば、扱い（もう一度同意してもらうなど）を決める
 
@@ -114,21 +130,67 @@
 - [ ] 公開後、`contact.html` から1通送って届くことを確かめる（万一ハッシュが合わないと、フォームに「現在フォームから送信できません」と出ます）
 - [ ] （推奨）EmailJS の Domains（許可するドメイン）に `chr2808480.github.io` だけを入れる（プランによって使えるか確認）。荒らしが多ければ reCAPTCHA v2 も検討
 
+### 1-7. 🆕 ログインだけして参加登録を済ませていない人のメールアドレスが、期限なく残る
+
+メールのリンクを開いた時点で、Firebase Authentication にアカウント（メールアドレス）ができます。
+表示名が重なって登録が止まった人や、別の端末でリンクを開いて途中でやめた人は、参加登録（`users/{uid}`）がないまま、アカウントだけが残ります。
+運営者ページ（`kanri.html`）でログイン用リンクを試しただけの人も同じです。
+
+- 基地の画面は、参加登録が済むまで「退会する」を出さないので、本人は消せません（サーバー側の `deleteAccount` は、参加登録がなくても動きます）
+- `privacy.html` 2. のメールアドレスの保存期間は「退会後すぐ削除（利用停止の場合は下記）」だけで、この場合が書かれていません
+- 個人情報保護法第22条は、使う必要がなくなった個人データを遅滞なく消すよう努めることを求めています
+- Firebase には、使われていないアカウントを自動で消すしくみはありません
+
+- [x] **2026-10-12 修正**：次の2つで消せるようにし、テストを足しました
+  - 定期処理 `cleanupUnregistered`：毎日4時（日本時間）に、参加登録のないまま最後に使ってから7日たったアカウントを削除する。運営者（権限を持つ人と `ADMIN_EMAILS` のメールアドレス）は消さない。Cloud Scheduler を1件使います（請求先アカウントごとに月3件まで無料）
+  - 基地のマイメニュー：ログインしたまま参加登録がまだの人に「登録をやめる」（メールアドレスを削除）を出す
+  - `privacy.html` 2. に「ログインしたまま参加登録を済ませなかったときは、最後に使ってから7日で自動削除」と書き足した
+- [ ] Cloud Shell で `bash setup.sh` を実行してデプロイし直す（1-5 と一緒でよい）。デプロイ後、Google Cloud コンソール →「Cloud Scheduler」に、`cleanupUnregistered` のジョブ（毎日 4:00、Asia/Tokyo）ができていることを確かめる
+
+### 1-8. 🆕 利用停止にした人の投稿が、期限なく残る
+
+利用停止のとき「投稿・返信もすべて削除する」にチェックしないと、その人の投稿・返信は公開されたまま残ります。
+本人はログイン情報を消されているので、自分では消せず、退会もできません。
+`privacy.html` 2. の投稿・返信の保存期間「自分で削除するか、退会するまで」が、この場合はいつまでも来ないことになります。
+
+- [x] **2026-10-12 修正**：利用停止にすると、投稿・返信を必ず消すようにしました（運営者ページのチェックボックスはなくし、テストを足しました）。
+  `privacy.html` 2. の保存期間に「利用停止になるまで」、`terms.html` 第8条と基地のルールに「利用停止になると、投稿・返信もすべて削除する（元に戻せない）」と書き足しました
+- [ ] Cloud Shell で `bash setup.sh` を実行してデプロイし直す（1-5 と一緒でよい）
+
 ---
 
-## 2. 必須：Firebase・Google Cloud のコンソールで確かめる
+## 2. 必須：Firebase・Google Cloud・GitHub・EmailJS の設定を確かめる
 
 - [ ] **予算アラート** が設定されていて、通知メールが届く。予算アラートはメールを送るだけで、**課金は止まりません**
 - [ ] （推奨）Cloud Functions に **spend cap（使いすぎの上限）** を設定する。2026年9月に始まった機能で、上限に達するとその月は関数が止まります。
-  プレビュー版で、使用量の反映に数分の遅れがあるため、上限は低めにします。**Firestore は対象外** なので、予算アラートと読み込み件数の制限（ルールの `small()`）で守ります
+  プレビュー版で、使用量の反映に遅れがあるため、上限を少し超えてから止まります。**Firestore は対象外** なので、予算アラートと読み込み件数の制限（ルールの `small()`）で守ります。
+  🆕 上限と比べる金額は、割引やクレジットを差し引く前の金額です（Firebase 公式）。低すぎる値にすると、ふだんの利用でも関数（＝投稿・登録）が止まるおそれがあるので、設定したら数日は使用量を見て確かめる。止まったときは Cloud コンソールで上限を上げ、再開まで最大1時間ほどかかります
 - [ ] プロジェクトの設定 →「全般」→ **公開名** を「ryuu星軍 本部」などにする。ログイン用メールに出る名前です（プロジェクトID は `spporting-ryuu-movie` で、つづりが利用者にはなじみません）
 - [ ] Authentication →「テンプレート」で、差出人名と返信先を確かめる
-- [ ] Authentication → 承認済みドメインに `chr2808480.github.io` がある。使わないドメインは外す
+- [ ] Authentication → 承認済みドメインに `chr2808480.github.io` がある。
+  🆕 `localhost` があれば外す（他人が自分のパソコンから本番のプロジェクトにつなぐのを防ぐ。2025年4月28日より後に作ったプロジェクトには、初めから入っていません）。
+  `（プロジェクトID）.firebaseapp.com` と `.web.app` は Firebase が使うので、外さない
 - [ ] Firestore の TTL（`ipLogs`・`reports`・`bans`・`moderation`・`users`・`handles` の `expireAt`）が **有効（Serving）** になっている。
   期限が過ぎてから実際に消えるまでは、通常24時間以内のずれがあります
 - [ ] IAM（プロジェクトのメンバー）に、運営者以外がいない
 - [ ] 合言葉（`HIROBA_SECRET`）をパスワード管理アプリに控えてある。
   テスト投稿の `ipLogs` を `scripts/decrypt-ip.mjs` で一度読んでみる（IP が記録できていることと、控えた合言葉が正しいことの両方を確かめられます）
+- [ ] 🆕（推奨）Artifact Registry（デプロイのたびに作られる部品の置き場所）に、古い部品を自動で消す設定（クリーンアップポリシー）があるか確かめる。
+  なければ Cloud Shell の `firebase` フォルダで `npx firebase functions:artifacts:setpolicy --project spporting-ryuu-movie` を実行する（初期値は1日より古いものを削除。Firebase CLI 14 以降）。README の「部品の保存で数円」の請求を抑えられます
+
+### 🆕 GitHub（サイトの配信元）
+
+`main` に書き込める人は、公開中のページ（接続先の `hiroba-config.js` や、お問い合わせの送り先の `contact.js` を含む）を書き換えられます。
+
+- [ ] リポジトリの Settings →「Collaborators」に、運営者以外がいない
+- [ ] （推奨）Settings →「Branches」で `main` にルール（ブランチ保護）を付け、プルリクエストを通さない直接の書き込みを止める
+- [ ] Settings →「Pages」で、配信元が `main` の `/ (root)` になっている
+
+### 🆕 EmailJS（お問い合わせフォーム）
+
+- [ ] プランの1か月の送信数の上限と、いまの使用量を確かめる（第三者のまとめでは、無料プランは月200通。EmailJS の料金ページで確かめる）。
+  上限に達するとフォームから送れなくなり、開示などの請求の窓口（`privacy.html` 9.）も止まります
+- [ ] フォームが使えないときの予備の窓口を決める。README は GitHub の Issue を案内していますが、**Issue は誰でも読める** ので、個人情報を含む請求には使わないよう案内する
 
 ---
 
@@ -140,10 +202,16 @@
 - [ ] リンクを含む投稿が「確認待ち」に入り、`kanri.html` で公開できる
 - [ ] 処置をひととおり：注意・非表示・公開に戻す・投稿停止・停止の解除・利用停止。
   「通知メールを作る」の文面（どのルールか・期間・異議の出し方・期限）を読む
+- [ ] 🆕 「通知メールを作る」で開いたメールに、本文が **最後（異議の申立て方と署名）まで** 入っているかを、実際に使う端末のメールアプリで確かめる。理由の欄に長め（300字ほど）の文を入れても試す。
+  通知はメールアプリを開くリンク（`mailto:`）で作るので、日本語は1文字が9文字分に変わります。計算すると、理由が空でも約2,200文字、対象の投稿200字と理由100字で約4,800文字、理由1,000字なら約13,000文字です。
+  長いリンクをどこまで受け取れるかはメールアプリやブラウザによって違い、途中で切れることがあります。異議の申立て方は本文の最後にあるので、切れると利用規約第8条の通知になりません。
+  **2026-10-12 修正**：運営者ページの「通知メールを作る」の下に、宛先・件名・本文を表示し、それぞれコピーできるボタンを付けました。切れていたら、コピーして貼り付けて送ります
 - [ ] 利用停止にしたメールアドレスで、もう一度登録できない
 - [ ] ログイン用メールが届くか：Gmail・iCloud・Yahoo!メール・キャリアメール（docomo / au / SoftBank）。
   迷惑メールに入る・受信拒否されるときは、基地の参加画面に「届かないとき」の案内を足す（独自ドメインから送る設定もあります）
 - [ ] リンクを別の端末・別のブラウザで開く（メールアドレスの入力を求められる流れ）。iPhone の Safari、Android の Chrome、メールアプリの中のブラウザ
+- [ ] 🆕 ログインしたまま参加登録をせず、マイメニューの「登録をやめる」を押すと、Firebase コンソールの「Authentication」→「ユーザー」からそのアカウントが消える
+- [ ] 🆕 利用停止にした人の投稿・返信が、基地から消えている
 - [ ] お問い合わせフォームから送って、届くこと・返信できること
 - [ ] 終わったら、テスト用のアカウントを退会し、テスト投稿を消す（`ipLogs` は90日で自動で消えます）
 
@@ -160,6 +228,8 @@
   **求められたら本名と住所を伝えることになる** ので、受け入れられるか確かめる
 - [ ] 漏えいなどが起きたときの流れを確かめる。報告が必要なのは、不正アクセスなど故意によるもの、1,000人を超えるものなどです。
   速報は気づいてから **おおむね3〜5日以内**、確報は **30日以内**（不正アクセスなど故意のものは **60日以内**）。報告は個人情報保護委員会のホームページのフォームから
+- [ ] 🆕 2024年4月1日から、入力フォームに不正なプログラムを仕込んで入力内容を盗む「Webスキミング」のように、**これから取得しようとしている個人情報** の漏えいも、報告と本人への通知の対象になりました（施行規則第7条第3号の改正）。
+  お問い合わせフォームは外部（jsDelivr）のプログラムを読み込むので、1-6 の版の固定と `integrity` を外さない。フォームを直すときも、外部のプログラムを増やさない
 - [ ] Firebase Authentication は、ログインの IP アドレスを数週間記録します（Firebase 公式）。`privacy.html` 2. の表に載っていないので、足すか検討する。
   なお「削除してから最長180日でバックアップからも消える」という記載は、Firebase の公表と一致しています
 
@@ -170,6 +240,14 @@
 - [ ] 権利侵害の申出を受けて投稿を消すとき、投稿した人に照会して **7日以内に反論がなければ**、投稿した人に対する責任を免れます（第3条第2項第2号）。
   `terms.html` 第8条第3項の「意見をお聞きします」に使うメールの型を用意しておく
 - [ ] 開示請求や裁判所の命令が来たときの相談先（弁護士など）を決めておく
+
+### 🆕 青少年インターネット環境整備法
+
+誰でも見られるページを置くサーバーを、他人の求めに応じて使わせる人は「特定サーバー管理者」に当たり（第2条第11項）、基地の運営者もこれに当たると考えられます。
+次の2つは **努力義務**（罰則はありません）です。
+
+- [ ] 青少年に有害な情報が投稿されたと **知ったとき** は、青少年が見られないようにする措置をとる（第21条）。基地では「非表示」で対応できます。いつも見回る義務ではありません
+- [ ] そうした情報についての連絡を受け付ける窓口を整える（第22条）。お問い合わせフォームの種類「星軍基地の投稿の削除依頼・処置への異議」で受けると決めておく
 
 ### 電気通信事業法
 
@@ -190,10 +268,16 @@
 ## 6. 推奨：運営の体制
 
 - [ ] **通報の確認のしかたを決める**。新しい通報が来ても運営者に知らせるしくみはないので、`kanri.html` を見る頻度（例：投稿を受け付けている時間に1日1回）を決める。見られない日は「運営者不在」をオンにする
+- [x] 🆕 **通報が「対応済みにする」を押すまで消えなかった**：**2026-10-12 修正**：通報した日から180日で自動で消える印を付けるようにしました（対応済みにすると、その日から90日に置き換わります）。`privacy.html` 2. にも書き足しました
+- [ ] 処置をしなかった通報も、確かめたら「対応済みにする」を押す（押せば90日で消えます）
+- [ ] デプロイより前に届いていた通報には、消える印が付いていません。デプロイ後、`kanri.html` の「未対応の通報」をすべて確かめて「対応済みにする」を押す
 - [ ] 個人情報の晒しなどは「段階を飛ばして、すぐに」対応すると規約に書いてあります（第8条第2項）。その速さで対応できるか
 - [ ] 運営者が2人以上なら、`ADMIN_EMAILS` への追加と、情報の扱いのルールの共有（`privacy.html` 7. 人的な対策）
 - [ ] Firestore のバックアップは設定していません。データが消えたら戻せないことを受け入れるか、バックアップを取るかを決める。取るなら、退会した人の情報がバックアップに残る期間をポリシーに書く
 - [ ] 開示請求の手順（`firebase/README.md`「日々の運営」）を読み、合言葉の保管場所を確かめる
+- [ ] 🆕 Cloud Shell は、120日開かないとホームフォルダ（`~/supporting_ryuu_movie` ごと）が消えます（事前にメールで知らせが来ます）。
+  消えるのは Cloud Shell の中のコピーと運営者のメールアドレスの控え（`functions/.env.spporting-ryuu-movie`）だけで、合言葉は Secret Manager に、本番の設定は Firebase に残ります。
+  次にデプロイするときは README 手順7の最初の1行からやり直し、運営者のメールアドレスを入れ直す（入れ忘れると `kanri.html` にログインできなくなります）
 
 ---
 
@@ -204,15 +288,24 @@
 - [ ] ブラウザ用の API キーに、使う API とリファラー（`chr2808480.github.io`）の制限をかける。
   Authentication の API を許可から外すとログインが壊れるので、変更後に必ずログインを試す
 - [ ] 新しい通報を運営者にメールで知らせるしくみ
+- [ ] 🆕 ページに `Content-Security-Policy`（読み込んでよい場所の制限）を書き、万一の書き換えや外部プログラムの混入に備える。GitHub Pages ではレスポンスヘッダーを自由に設定できないので、`<meta http-equiv>` で書く（一部の機能は使えません）。書いたら、基地・運営者ページ・お問い合わせフォームが動くか必ず確かめる
 - [x] **2026-10-12 修正**：`README.md`・`operations.md` の `docs/operations.md`・`docs/research.md` を、リポジトリ直下のファイルへのリンクに直しました
+
+### 🆕 公開後の定期点検
+
+- [ ] **2027年4月30日までに**、Cloud Functions の実行環境を Node.js 22 から Node.js 24 に上げる。
+  Node.js 22 は 2027-04-30 に非推奨、2027-10-31 に廃止の予定です（廃止後は関数を更新できなくなり、止められることもある）。Google は非推奨の90日前から知らせを送ります。
+  `firebase/firebase.json` の `runtime` と `firebase/functions/package.json` の `engines` を直し、`npm test` を通してから `bash setup.sh` でデプロイし直す
+- [ ] 数か月に一度、部品（`firebase-functions`・`firebase-admin`・ブラウザ用の `firebase`・`firebase-tools`）を更新し、`npm audit` とテストを実行する。ブラウザ用の `firebase` を上げたら `npm run build:web` で `assets/js/vendor/firebase-hiroba.js` を作り直す
+- [ ] `research.md` の最終調査日が古くなっていないか（公式アカウントの情報は変わります）
 
 ---
 
 ## 8. 公開当日の作業
 
-1. 1-1〜1-6 の修正を main に入れる（`TERMS_VERSION` や関数を変えたら、Cloud Shell で `bash setup.sh` を実行してデプロイし直す）
-2. `index.html` の基地の紹介を「準備中・試験運用中」から本番用に直す
-3. `hiroba.html` の `noindex` を外すか決める。外すなら `sitemap.xml` に `hiroba.html` などを足す
+1. 1-1〜1-8 の修正を main に入れる（`TERMS_VERSION` や関数を変えたら、Cloud Shell で `bash setup.sh` を実行してデプロイし直す）
+2. `index.html` の基地の紹介（見出しの「準備中」と「試験運用中です…」の一文）を本番用に直す
+3. `hiroba.html` の `noindex` を外すか決める（いまのコメントでは、企画書 第2章に沿って「検索エンジンに載せない・sitemap.xml にも入れない」方針です）。外すなら `sitemap.xml` に `hiroba.html` などを足す
 4. 数分後に、シークレットウィンドウで トップ → 基地 → 参加登録 まで開いて確かめる
 5. `kanri.html` のお知らせ欄に、開始のお知らせを入れる
 
@@ -233,22 +326,33 @@
 - [Learn about using and managing API keys for Firebase](https://firebase.google.com/docs/projects/api-keys) ／ [Authentication FAQ and troubleshooting](https://firebase.google.com/docs/auth/faq-and-troubleshooting)
 - [Firebase App Check](https://firebase.google.com/docs/app-check) ／ [reCAPTCHA Enterprise provider（Web）](https://firebase.google.com/docs/app-check/web/recaptcha-enterprise-provider)
 - [Cloud Logging: Store log entries](https://docs.cloud.google.com/logging/docs/store-log-entries) ／ [Configure log buckets](https://docs.cloud.google.com/logging/docs/buckets)（`_Default` は初期値30日・変更可、`_Required` は400日固定）
+- 🆕 [Firebase FAQ](https://firebase.google.com/support/faq)（spend cap は割引・クレジットを差し引く前の金額で数える。上限を上げてから再開まで最大1時間）
+- 🆕 [Firebase launch checklist](https://firebase.google.com/support/guides/launch-checklist)（予算アラートは上限ではない、App Check の強制）
+- 🆕 [Authentication FAQ and troubleshooting](https://firebase.google.com/docs/auth/faq-and-troubleshooting) ／ [Email Link in JavaScript](https://firebase.google.com/docs/auth/web/email-link-auth)（本番では localhost を承認済みドメインから外す。2025-04-28 より後に作ったプロジェクトには初めから入っていない）
+- 🆕 [Manage users（Admin SDK）](https://firebase.google.com/docs/auth/admin/manage-users)（アカウントの一覧・削除。自動で消すしくみはない）
+- 🆕 [Manage functions](https://firebase.google.com/docs/functions/manage-functions)（`functions:artifacts:setpolicy`。初期値は1日より古い部品を削除、Firebase CLI 14 以降）
+- 🆕 [Cloud Run functions runtimes](https://docs.cloud.google.com/run/docs/runtimes/function-runtimes) ／ [Cloud Run runtime lifecycle](https://docs.cloud.google.com/run/docs/runtime-support)（`nodejs22`：2027-04-30 非推奨、2027-10-31 廃止。90日前から通知）
+- 🆕 [Cloud Shell: Quotas and limits](https://docs.cloud.google.com/shell/docs/quotas-limits)（120日開かないとホームフォルダが削除される）
+- 🆕 [Schedule functions](https://firebase.google.com/docs/functions/schedule-functions) ／ [Cloud Scheduler pricing](https://cloud.google.com/scheduler/pricing)（定期処理は Cloud Scheduler のジョブを使う。請求先アカウントごとに月3件まで無料、その後は1件あたり月0.10ドル）
 
 ### EmailJS・配信（公式）
 
-- [EmailJS Pricing](https://www.emailjs.com/pricing/)（履歴は初期設定で保存、テンプレートの設定で止められる）
+- [EmailJS Pricing](https://www.emailjs.com/pricing/)（履歴は初期設定で保存、テンプレートの設定で止められる。🆕 プランごとの1か月の送信数）
 - [EmailJS Privacy Policy](https://www.emailjs.com/legal/privacy-policy/)
 - [EmailJS: Multi-Factor Authentication](https://www.emailjs.com/docs/user-guide/multi-factor-authentication/)
 - [EmailJS: Can I add my domain to the allowlist?](https://www.emailjs.com/docs/faq/can-i-add-my-domain-to-allowlist/) ／ [Adding CAPTCHA verification](https://www.emailjs.com/docs/user-guide/adding-captcha-verification/)
 - [GitHub Docs: Setting your commit email address](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address)（「Keep my email addresses private」でウェブ上の操作のコミットに noreply アドレスを使う）
 - [jsDelivr（GitHub）](https://github.com/jsdelivr/jsdelivr)（版を固定しない読み込みは本番では非推奨）
 - [MDN: integrity 属性](https://developer.mozilla.org/ja/docs/Web/HTML/Reference/Attributes/integrity) ／ [Mozilla Hacks: Subresource Integrity](https://hacks.mozilla.org/2015/09/subresource-integrity-in-firefox-43/)
+- 🆕 [MDN: Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP) ／ [MDN: `<meta http-equiv>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta/http-equiv)（ヘッダーを使えないときは `<meta>` で書ける。一部の機能は使えない）
 
 ### 法令（公的機関）
 
 - [個人情報の保護に関する法律（e-Gov 法令検索）](https://laws.e-gov.go.jp/law/415AC0000000057)
 - [個人情報保護委員会：ガイドライン（通則編）](https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/)
 - [個人情報保護委員会：漏えい等の対応とお役立ち資料](https://www.ppc.go.jp/personalinfo/legal/leakAction/)
+- 🆕 [個人情報保護委員会：令和5年度年次報告の概要](https://www.ppc.go.jp/files/pdf/060611_annual_report_gaiyou.pdf) ／ [令和5年度 年次報告](https://www.ppc.go.jp/aboutus/report/annual_report_2023/)（Webスキミングを漏えい等報告・本人通知の対象にするため、施行規則を改正〔令和5年12月公布、令和6年4月1日施行〕）
+- 🆕 [青少年が安全に安心してインターネットを利用できる環境の整備等に関する法律（e-Gov 法令検索）](https://laws.e-gov.go.jp/law/420AC1000000079)（第2条第11項 特定サーバー管理者、第21条・第22条 努力義務）
 - [総務省：プロバイダ責任制限法の免責要件（照会して7日以内に反論がない場合）](https://www.soumu.go.jp/main_content/001012037.pdf)
 - [京都府：情報流通プラットフォーム対処法の概要](https://www.pref.kyoto.jp/koho/dayori/202605/jinken.html)
 - [総務省：電気通信事業参入マニュアル［追補版］（令和5年1月30日改定）](https://www.soumu.go.jp/main_content/000477428.pdf)
