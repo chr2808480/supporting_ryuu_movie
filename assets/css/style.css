@@ -371,7 +371,7 @@ code {
 .step h3 { margin: .15rem 0 .35rem; font-size: 1rem; color: var(--red-soft); }
 .step p  { margin: 0; font-size: .88rem; color: var(--ink-mute); }
 
-/* --------------------------------------------------------- ひろばの案内 */
+/* --------------------------------------------------------- 星軍基地の案内 */
 .hiroba-intro {
   margin-top: 2rem; padding: 1.4rem 1.5rem;
   display: flex; flex-wrap: wrap; align-items: center; gap: 1.2rem 2rem;
