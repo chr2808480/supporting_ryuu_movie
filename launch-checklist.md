@@ -117,9 +117,11 @@
 - [ ] **必須**：EmailJS のテンプレートの宛先（To Email）を運営専用の Gmail にする。
   運営専用の Gmail は対応・返信に使うので、お問い合わせもそこに届くようにします。私用のアドレスに届いたまま返信すると、差出人として私用のアドレスが相手に見えてしまいます（テンプレートの Reply To に `{{email}}` を入れているため、返信ボタンでそのまま相手に送れてしまう）
 - [x] **2026-10-12**：運営者が EmailJS に新しいサービス `contact_service` を作ったので、`assets/js/contact.js` の `serviceId` を `service_rwf3ey8` から差し替えました（Template ID・Public Key はそのまま）。main にマージして GitHub Pages に出るまでは、公開中のフォームは前のサービスで送ります
-- [ ] main に出たら、公開中の `contact.html` からテスト送信し、運営専用の Gmail に届くこと、届いたメールの返信先が入力したアドレスになることを確かめる
-- [ ] 使わなくなった前のサービス `service_rwf3ey8` を EmailJS の Email Services から削除する。Service ID・Template ID・Public Key はどれもページに出ている値なので、残しておくと、誰でも前のサービスを使って送れてしまいます。
-  前のサービスを私用の Gmail につないでいたなら、私用の Google アカウントの「サードパーティとの接続」から EmailJS のアクセス権も削除する
+- [x] **2026-10-12**：テスト送信して、運営専用の Gmail に届くことを確かめました（運営者）
+- [x] **2026-10-12 決定**：前のサービス `service_rwf3ey8` は、運営者の別の個人サイトで使っているので **残す**（消すとそちらのフォームが止まります）。
+  Service ID・Template ID・Public Key はページに出る値なので、前のサービスでこのサイトのテンプレートを送ることは誰でもできます。ただし送れるのは用意したテンプレートだけで（EmailJS FAQ「Is it okay to expose my Public Key?」）、宛先が固定なら届くのは運営者だけです。新しいサービスでも同じことはできるので、残しても危なさはほとんど増えません
+- [ ] このサイトのテンプレート（`template_w407ihr`）の宛先（To Email）が、`{{email}}` などの変数ではなく **固定のアドレス** になっているか確かめる。変数だと、誰でも好きな宛先に、運営者の Gmail からメールを送れてしまいます（迷惑メールの踏み台になる）
+- [ ] 🔎 EmailJS のアカウントを別の個人サイトと共有しているので、1か月の送信数の上限（無料プランは月200件）も2つのサイトで分け合います。上限に達すると、それ以降の送信は捨てられます（EmailJS「Pricing」）。2. の EmailJS の項目で使用量を見るときは、両方の合計で考える
 - [ ] **推奨**：Email Services でつないだアカウント（お問い合わせのメールを送る側）も運営専用の Gmail にする（`contact_service` をどちらにつないだか確かめる）。
   私用のままでも動き、利用者にも見えません。ただし、送った控えが私用の Gmail の「送信済み」にもたぶん残り（Gmail API で送ったメールには「送信済み」のラベルが自動で付きます。EmailJS の送り方は公表されていないので、テスト送信で確かめる）、お問い合わせの内容が2つのメールボックスに分かれます。私用のままにするなら、1-2 の「1年たったメールを消す」を両方でする。
   サービスを新しく作ると Service ID が変わるので、`assets/js/contact.js` の `serviceId` も直す
@@ -157,7 +159,7 @@
 
 - [x] **2026-10-12 修正**：4 系の最新版 `@4.4.1`（いま `@4` で読み込まれているのと同じ版）に固定し、`integrity` 属性（SRI：ファイルが変わっていたら実行しない）と `crossorigin="anonymous"` を付けました
 - [ ] 公開後、`contact.html` から1通送って届くことを確かめる（万一ハッシュが合わないと、フォームに「現在フォームから送信できません」と出ます）
-- [ ] （推奨）EmailJS の Domains（許可するドメイン）に `chr2808480.github.io` だけを入れる（プランによって使えるか確認）。荒らしが多ければ reCAPTCHA v2 も検討
+- [ ] （推奨）EmailJS の Domains（許可するドメイン）に `chr2808480.github.io` を入れる（プランによって使えるか確認）。EmailJS のアカウントを別の個人サイトと共有しているので、**そのサイトのドメインも一緒に入れる**（入れ忘れると、そちらのフォームが止まります）。荒らしが多ければ reCAPTCHA v2 も検討
 
 ### 1-7. 🆕 ログインだけして参加登録を済ませていない人のメールアドレスが、期限なく残る
 
@@ -423,6 +425,7 @@ README の手順4で「メール / パスワード」もオンにしているた
 
 - [EmailJS Pricing](https://www.emailjs.com/pricing/)（履歴は初期設定で保存、テンプレートの設定で止められる。🆕 プランごとの1か月の送信数）
 - [EmailJS Privacy Policy](https://www.emailjs.com/legal/privacy-policy/)
+- [EmailJS: Is it okay to expose my Public Key?](https://www.emailjs.com/docs/faq/is-it-okay-to-expose-my-public-key/)（キーを写されても、送れるのは用意したテンプレートだけ）
 - [EmailJS: /send API](https://www.emailjs.com/docs/rest-api/send/)（送るのに要るのは service_id・template_id・Public Key〔user_id〕で、どれもページに出る値）
 - [Google アカウント ヘルプ「Google アカウントとサードパーティの接続を管理する」](https://support.google.com/accounts/answer/13533235?hl=ja)（「アクセス権を削除」）
 - [EmailJS: Creating email templates](https://www.emailjs.com/docs/user-guide/creating-email-templates/)（To Email・From Email・Reply To。From は「既定のアドレス」にすると、つないだサービスのアドレスになる）／ [Connecting email services](https://www.emailjs.com/docs/user-guide/connecting-email-services/)
