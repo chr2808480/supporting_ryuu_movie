@@ -69,12 +69,25 @@
 
 ### 1-4. 運営者用のメールアドレスを用意する
 
-`kanri.html` の「通知メールを作る」は、運営者のメールアプリから、処置を受けた人へ直接送るしくみです。
-私用のアドレスで送ると、そのアドレスと差出人名が相手に伝わります。
+運営で使うメールアドレスには、次の役割があります。**すべて同じでも、別々でも動きます。**
+利用者に見えるのは「送る・返信する」アドレスだけなので、そこを私用と分けるのが大事です。
+
+| 役割 | どこで決まるか | 利用者に見えるか |
+| --- | --- | --- |
+| 運営者ページ（`kanri.html`）のログイン | `setup.sh` で入力した `ADMIN_EMAILS`（`functions/.env.（プロジェクトID）` に保存） | 見えない |
+| 処置の通知を送る | 「通知メールを作る」で開いたメールアプリの差出人 | **見える** |
+| お問い合わせの受け取りと返信 | EmailJS の Email Services でつないだアカウント、テンプレートの宛先 | 返信すると **見える** |
+| Firebase コンソールに入る Google アカウント | Firebase プロジェクトの持ち主 | 見えない |
 
 - [ ] 基地の運営専用のアドレスを作り、二段階認証をかける
+- [ ] 「通知メールを作る」は、端末のいつものメールアプリを開くだけで、差出人はこのサイトからは決められません（`mailto:` のしくみ）。
+  送る前に、差出人が運営専用のアドレスになっているか毎回確かめる（運営専用のアカウントを既定にした端末で `kanri.html` を使うと間違えにくい）
+- [ ] EmailJS の Email Services でつないだアカウントと、テンプレートの宛先を運営専用のアドレスにする
 - [ ] そのサービス名・事業者の国・サーバーの国・公表している安全対策を、`privacy.html` 6. の「要記入」に書く（外国の事業者なら、個人情報保護法第28条の情報提供に当たります）
-- [ ] 運営者ページのログインもメールのリンクなので、**このメールボックスを開ける人は運営者になれる** ものとして守る
+- [ ] 運営者ページのログインはメールのリンクなので、**`ADMIN_EMAILS` のメールボックスを開ける人は運営者になれる** ものとして守る（二段階認証）
+- [ ] ログイン用（`ADMIN_EMAILS`）も運営専用のアドレスに替えるときは、`bash setup.sh` をもう一度実行して新しいアドレスを入れ、新しいアドレスで `kanri.html` の「運営者として有効にする」を押す。
+  **古いアカウントの運営者の権限は自動では消えません**（`claimAdmin` は権限を付けるだけで、外す処理はない）。Firebase コンソール →「Authentication」→「ユーザー」から古いアカウントを削除する（そのアカウントで基地に参加登録していたなら、先に退会する）
+- [ ] GitHub のコミットには、作者のメールアドレスが公開の記録として残ります。このリポジトリのマージのコミットには私用の Gmail アドレスが記録されているので、GitHub の設定 →「Emails」→「Keep my email addresses private」をオンにして、これから先のコミットに出ないようにする（過去のコミットの記録は変わりません）
 
 ### 1-5. 利用停止にした人の記録の一部が、消えずに残る（コードの修正が必要）
 
@@ -207,6 +220,7 @@
 ### Firebase・Google Cloud（公式）
 
 - [Authenticate with Firebase Using Email Link in JavaScript](https://firebase.google.com/docs/auth/web/email-link-auth)（メールのリンクでログインすると、確認していないパスワードが消される）
+- [Control Access with Custom Claims and Security Rules](https://firebase.google.com/docs/auth/admin/custom-claims)（運営者の権限〔custom claims〕は、次に ID トークンが発行されたときに反映される）
 - [Firebase Authentication Limits](https://firebase.google.com/docs/auth/limits)（ログイン用メールの上限）
 - [Manage data retention with TTL policies](https://firebase.google.com/docs/firestore/ttl)（通常24時間以内に削除、サブコレクションは消えない）
 - [Set up budget alerts for Firebase services](https://firebase.google.com/docs/projects/billing/budget-alerts)
@@ -223,6 +237,7 @@
 - [EmailJS Privacy Policy](https://www.emailjs.com/legal/privacy-policy/)
 - [EmailJS: Multi-Factor Authentication](https://www.emailjs.com/docs/user-guide/multi-factor-authentication/)
 - [EmailJS: Can I add my domain to the allowlist?](https://www.emailjs.com/docs/faq/can-i-add-my-domain-to-allowlist/) ／ [Adding CAPTCHA verification](https://www.emailjs.com/docs/user-guide/adding-captcha-verification/)
+- [GitHub Docs: Setting your commit email address](https://docs.github.com/en/account-and-profile/how-tos/email-preferences/setting-your-commit-email-address)（「Keep my email addresses private」でウェブ上の操作のコミットに noreply アドレスを使う）
 - [jsDelivr（GitHub）](https://github.com/jsdelivr/jsdelivr)（版を固定しない読み込みは本番では非推奨）
 - [MDN: integrity 属性](https://developer.mozilla.org/ja/docs/Web/HTML/Reference/Attributes/integrity) ／ [Mozilla Hacks: Subresource Integrity](https://hacks.mozilla.org/2015/09/subresource-integrity-in-firefox-43/)
 
