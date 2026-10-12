@@ -8,10 +8,15 @@ cd "$(dirname "$0")"
 
 say()  { printf '\n\033[1;31m★\033[0m \033[1m%s\033[0m\n' "$*"; }
 fail() { printf '\n\033[1;31m止まりました：\033[0m%s\n\n' "$*" >&2; exit 1; }
-ask()  { local answer; read -r -p "$1" answer; printf '%s' "$answer"; }
+# 日本語入力のまま打った全角の文字（ｙ、全角の英数字や空白）も、半角にそろえて受け取る
+ask()  { local answer; read -r -p "$1" answer; node -e 'process.stdout.write(process.argv[1].normalize("NFKC").trim())' "$answer"; }
 
 # Cloud Shell には firebase コマンドが最初から入っている。なければ npx で取ってくる
 if command -v firebase >/dev/null 2>&1; then FB=(firebase); else FB=(npx --yes firebase-tools@15.31.0); fi
+
+# ---- Node.js（Firebase の道具を動かすのに使う）
+major=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
+(( major >= 20 )) || fail "Node.js 20 以上が必要です（いまは $(node -v 2>/dev/null || echo 入っていません)）。"
 
 say "星軍基地のサーバー側を、Firebase に設定します。"
 cat <<'EOF'
@@ -23,11 +28,7 @@ cat <<'EOF'
      承認済みドメインに chr2808480.github.io を追加した
 EOF
 ok=$(ask "済んでいれば y を入力して Enter：")
-[[ "$ok" == "y" || "$ok" == "Y" ]] || fail "先に Firebase コンソールでの準備を済ませてから、もう一度 bash setup.sh を実行してください。"
-
-# ---- Node.js（Firebase の道具を動かすのに使う）
-major=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
-(( major >= 20 )) || fail "Node.js 20 以上が必要です（いまは $(node -v 2>/dev/null || echo 入っていません)）。"
+[[ "$ok" == "y" || "$ok" == "Y" || "$ok" == "はい" ]] || fail "先に Firebase コンソールでの準備を済ませてから、もう一度 bash setup.sh を実行してください（済んでいるのに止まったときは、日本語入力をオフにして y を入力してください）。"
 
 # ---- プロジェクト
 default_project="${GOOGLE_CLOUD_PROJECT:-spporting-ryuu-movie}"
