@@ -418,11 +418,22 @@ exports.deleteAccount = onCall(async (request) => {
 
 /* ------------------------------------------------------------ 運営者 */
 
+// 設定を入力するときに矢印キーなどを押すと、見えない制御文字が混ざることがあるので、取り除いてから比べる
+function adminEmails(value) {
+  return String(value || "")
+    .replace(/\u001b\[[0-9;?]*[A-Za-z~]/g, "")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .normalize("NFKC")
+    .split(/[,\s]+/)
+    .map((s) => s.trim().toLowerCase())
+    .filter((s) => s.includes("@"));
+}
+
 exports.claimAdmin = onCall(async (request) => {
   const auth = request.auth;
   if (!auth) throw fail("unauthenticated", "ログインしてください。");
   const email = str(auth.token.email).toLowerCase();
-  const allowed = ADMIN_EMAILS.value().split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const allowed = adminEmails(ADMIN_EMAILS.value());
   if (auth.token.email_verified !== true || !allowed.includes(email)) throw fail("permission-denied", "運営者として登録されていないメールアドレスです。", "not-admin");
   await getAuth().setCustomUserClaims(auth.uid, { admin: true });
   return { ok: true };
