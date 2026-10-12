@@ -84,6 +84,14 @@ test("ミュート・ブロックは本人だけが読み書きできる", async
   await assertFails(setDoc(doc(as("alice"), "users/alice/private/replyLog"), { entries: [] }));
 });
 
+test("ミュート・ブロックを書けるのは、参加登録が済み、利用停止になっていない人だけ", async () => {
+  // 参加登録していない人（ログインだけした人・メールアドレスを確かめていないアカウント）
+  await assertFails(setDoc(doc(as("bob"), "users/bob/private/prefs"), { muted: [], blocked: [] }));
+  // 利用停止の直後に、本人の手元のログインで書き戻そうとする
+  await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), "users/carol"), { handle: "C", status: "banned" }));
+  await assertFails(setDoc(doc(as("carol"), "users/carol/private/prefs"), { muted: [], blocked: [] }));
+});
+
 test("利用者の記録・処置は本人と運営者、通報は運営者だけ。IP の記録は誰も読めない", async () => {
   await assertSucceeds(getDoc(doc(as("alice"), "users/alice")));
   await assertFails(getDoc(doc(as("bob"), "users/alice")));

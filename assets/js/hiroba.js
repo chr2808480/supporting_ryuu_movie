@@ -1,5 +1,5 @@
 /*!
- * ryuu星軍 本部 — 星軍基地（ページ案）
+ * ryuu星軍 本部 — 星軍基地
  * hiroba-config.js に接続先がなければデモとして動き、投稿・通報・登録はどこにも送信しない。
  * 接続先があれば Firebase につなぐ（hiroba-firebase.js）。受付時間・往復回数・個人情報らしい文字列・
  * 保留の判定はサーバー側の関数でも行う（ブラウザ側だけのチェックは簡単にすり抜けられるため）。
@@ -154,6 +154,15 @@
     return PII_PATTERNS.filter(function (p) { return p.re.test(s); }).map(function (p) { return p.label; });
   }
   function hasLink(text) { return /https?:\/\/|www\./i.test(text); }
+
+  // 表示名の見えない文字（ゼロ幅スペースなど）。functions/index.js の hasInvisible と同じ判定。
+  // サーバーで断られるのはメールのリンクを開いた後になるので、リンクを送る前にここでも確かめる
+  function hasInvisible(s) {
+    var rest = s.normalize("NFKC")
+      .replace(/(\p{Extended_Pictographic})[\uFE0E\uFE0F]/gu, "$1")
+      .replace(/(\p{Extended_Pictographic})\u200D(?=\p{Extended_Pictographic})/gu, "$1");
+    return /[\p{Default_Ignorable_Code_Point}\p{Cf}]/u.test(rest);
+  }
 
   /* ------------------------------------------------ 返信の上限（同じ相手と24時間で3回まで） */
   function repliesLeft(toId) {
@@ -552,6 +561,7 @@
     if (!email.value || !email.checkValidity()) { joinMsg.textContent = "メールアドレスを正しく入力してください。"; email.focus(); return; }
     if (!handle) { joinMsg.textContent = "表示名を入力してください。"; joinForm.elements.handle.focus(); return; }
     if (detectPII(handle).length) { joinMsg.textContent = "表示名に連絡先や住所らしい文字列が含まれています。"; return; }
+    if (hasInvisible(handle)) { joinMsg.textContent = "表示名に使えない文字（見えない文字など）が含まれています。"; return; }
 
     if (live) {
       joinSubmit.disabled = true;

@@ -56,10 +56,13 @@ service cloud.firestore {
       allow read: if isMe(uid) || isAdmin();
       allow write: if false;
 
-      // ミュート・ブロック：本人だけが読み書きできる。相手には知らされない
+      // ミュート・ブロック：本人だけが読み書きできる。相手には知らされない。
+      // 書けるのは参加登録が済み、利用停止になっていない人だけ（利用停止の直後に、手元のログインで書き戻されないように）
       match /private/prefs {
         allow read: if isMe(uid);
         allow write: if isMe(uid)
+                     && exists(/databases/$(database)/documents/users/$(uid))
+                     && get(/databases/$(database)/documents/users/$(uid)).data.status == 'active'
                      && request.resource.data.keys().hasOnly(['muted', 'blocked'])
                      && request.resource.data.get('muted', []) is list
                      && request.resource.data.get('blocked', []) is list
