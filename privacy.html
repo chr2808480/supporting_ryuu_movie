@@ -174,7 +174,7 @@
             <tbody>
               <tr><th scope="row">基地のデータの保存と、サーバー側の処理</th><td>Firebase（Google LLC）の Cloud Firestore・Cloud Functions</td><td>表示名、投稿・返信、★・ミュート・ブロック、通報、処置の記録、暗号化した IP アドレスなど</td><td>米国／日本（東京）</td></tr>
               <tr><th scope="row">ログインと、ログイン用メールの送信</th><td>Firebase Authentication（Google LLC）</td><td>メールアドレス、ログインの記録（IP アドレスを含む）</td><td>米国／米国</td></tr>
-              <tr><th scope="row">運営者のメールの送受信（処置の通知・お問い合わせへの返信）</th><td><span class="doc-fill">要記入</span></td><td>メールアドレス、通知・お問い合わせの内容</td><td><span class="doc-fill">要記入</span></td></tr>
+              <tr><th scope="row">運営者のメールの送受信（処置の通知・お問い合わせの受け取りと返信）</th><td>Gmail（Google LLC）</td><td>メールアドレス、通知・お問い合わせの内容</td><td>米国／特定できません（下記）</td></tr>
               <tr><th scope="row">お問い合わせフォームの送信</th><td>EmailJS（EmailJS Pte. Ltd.）</td><td>フォームの入力内容</td><td>シンガポール／米国</td></tr>
             </tbody>
           </table>
@@ -185,13 +185,19 @@
           <li>米国：個人情報の保護に関する包括的な連邦法はなく、分野ごとの法律や州の法律で保護されています（個人情報保護委員会「<a href="https://www.ppc.go.jp/enforcement/infoprovision/laws/offshore_report_america/">外国制度（アメリカ合衆国）</a>」）。</li>
           <li>シンガポール：民間の事業者を対象とする包括的な法律として、個人データ保護法（Personal Data Protection Act 2012）があります（個人情報保護委員会「<a href="https://www.ppc.go.jp/enforcement/infoprovision/laws/offshore_report_singapore/">外国制度（シンガポール共和国）</a>」）。</li>
         </ul>
+        <p>Gmail のサーバーの国は特定できません。Google は、情報を世界各地のサーバーで処理することがあると公表していて（<a href="https://policies.google.com/privacy?hl=ja">Google プライバシー ポリシー</a>）、保存する国を利用者が選べないためです。参考として、Google が公表しているデータセンターの所在国は、米国・チリ・アイルランド・オランダ・デンマーク・フィンランド・ベルギー・ドイツ・台湾・シンガポール・日本です（<a href="https://datacenters.google/locations/">Google「Data Center Locations」</a>、2026年10月に確認）。上に書いた国のほかの制度は、次のとおりです。</p>
+        <ul>
+          <li>アイルランド・オランダ・デンマーク・フィンランド・ベルギー・ドイツ：EU の一般データ保護規則（GDPR）が適用され、個人情報保護委員会が、日本と同等の水準の制度を持つ国として指定しています（個人情報保護委員会「<a href="https://www.ppc.go.jp/files/pdf/190123_h31iinkaikokuji01.pdf">平成31年個人情報保護委員会告示第1号</a>」）。</li>
+          <li>台湾：包括的な法律として、個人資料保護法があります（個人情報保護委員会「<a href="https://www.ppc.go.jp/enforcement/infoprovision/laws/offshore_report_taiwan/">外国制度（台湾）</a>」）。</li>
+          <li>チリ：包括的な法律として、私生活の保護に関する法律（法律第19.628号）があります。2024年12月に公布された改正法（法律第21.719号）で、監督機関（個人データ保護庁）が置かれることになっています（チリ国会図書館「<a href="https://www.bcn.cl/leychile/navegar?idNorma=1209272">Ley 21.719</a>」）。</li>
+        </ul>
         <h3>任せる先がとっている対策</h3>
         <ul>
           <li>EmailJS：保存するデータを暗号化し、米国の Amazon Web Services のサーバーで運用しています（<a href="https://www.emailjs.com/legal/privacy-policy/">EmailJS プライバシーポリシー</a>）。運営者は、入力内容の履歴を EmailJS に残さない設定で使います。</li>
           <li>Firebase（Google）：すべてのサービスで ISO 27001 と SOC 1・2・3 の評価を受け、通信を暗号化（HTTPS）し、Cloud Firestore と Authentication は保存するデータも暗号化しています（<a href="https://firebase.google.com/support/privacy">Privacy and Security in Firebase</a>）。</li>
-          <li>運営者のメールサービス：各社が公表している対策（<span class="doc-fill">要記入</span>）</li>
+          <li>Gmail（Google）：メールは、保存中も、Google のデータセンターの間を送るときも暗号化しています（<a href="https://safety.google/intl/ja_ALL/products/gmail/">Google セーフティ センター「Gmail」</a>）。ほかのメールサービスとのやりとりも、相手が対応していれば暗号化（TLS）します（<a href="https://support.google.com/mail/answer/6330403?hl=ja">Gmail ヘルプ「Gmail でメールが暗号化される仕組み」</a>）。個人情報にアクセスできる担当者を、処理に必要な社員などに限り、契約上の守秘義務を課しています（<a href="https://policies.google.com/privacy?hl=ja">Google プライバシー ポリシー</a>）。運営者は、運営専用のアカウントを使い、二段階認証で守ります。</li>
         </ul>
-        <p>外国にある事業者に個人データの取扱いを任せるときは、個人情報保護法第28条に従い、あらかじめ国名などの情報をお伝えしたうえでご本人の同意をいただきます。Firebase については参加登録の画面で、EmailJS についてはお問い合わせフォームで、同意をいただいています。</p>
+        <p>外国にある事業者に個人データの取扱いを任せるときは、個人情報保護法第28条に従い、あらかじめ国名などの情報をお伝えしたうえでご本人の同意をいただきます。Firebase と Gmail については参加登録の画面で、EmailJS と Gmail についてはお問い合わせフォームで、同意をいただいています。</p>
       </article>
 
       <article class="doc-article" id="p7">
