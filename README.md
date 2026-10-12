@@ -56,6 +56,7 @@ assets/js/hiroba-firebase.js  Firebase とのやりとり（メールリンク�
 assets/js/vendor/       Firebase の部品をまとめたもの（firebase/ で npm run build:web）
 kanri.html              運営者ページ（確認待ちの公開・通報・処置・お知らせ）。noindex・どこからもリンクしない
 firebase/               サーバー側（Cloud Functions・Firestore のルール・テスト）。手順は firebase/README.md
+launch-checklist.md     星軍基地を正式に公開する前の確認リスト（設定・規約・法令・運営体制）
 docs/research.md        調査メモ・情報源・確度（更新前に必読）
 docs/operations.md      運営ガイド（非公式サイトとして守ること、更新手順）
 ```
