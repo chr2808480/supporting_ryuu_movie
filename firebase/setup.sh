@@ -9,7 +9,12 @@ cd "$(dirname "$0")"
 say()  { printf '\n\033[1;31m★\033[0m \033[1m%s\033[0m\n' "$*"; }
 fail() { printf '\n\033[1;31m止まりました：\033[0m%s\n\n' "$*" >&2; exit 1; }
 # 日本語入力のまま打った全角の文字（ｙ、全角の英数字や空白）も、半角にそろえて受け取る
-ask()  { local answer; read -r -p "$1" answer; node -e 'process.stdout.write(process.argv[1].normalize("NFKC").trim())' "$answer"; }
+# 矢印キーで直せるように read -e を使い、それでも混ざった見えない制御文字は取り除く
+ask()  {
+  local answer
+  read -e -r -p "$1" answer
+  node -e 'process.stdout.write(process.argv[1].replace(/\u001b\[[0-9;?]*[A-Za-z~]/g, "").replace(/[\u0000-\u001f\u007f]/g, "").normalize("NFKC").trim())' "$answer"
+}
 
 # Cloud Shell には firebase コマンドが最初から入っている。なければ npx で取ってくる
 if command -v firebase >/dev/null 2>&1; then FB=(firebase); else FB=(npx --yes firebase-tools@15.31.0); fi
@@ -56,13 +61,18 @@ echo "  → Firestore を確認しました（${location:-場所は確認でき�
 # ---- 運営者のメールアドレス（kanri.html にログインできる人）
 envfile="functions/.env.$project"
 current=""
-[[ -f "$envfile" ]] && current=$(sed -n 's/^ADMIN_EMAILS=//p' "$envfile")
-emails=$(ask "運営者ページにログインするメールアドレス（複数ならカンマ区切り）[${current}]：")
-emails="${emails:-$current}"
-emails="${emails// /}"
-[[ "$emails" == *@* ]] || fail "メールアドレスを入力してください。"
+[[ -f "$envfile" ]] && current=$(sed -n 's/^ADMIN_EMAILS=//p' "$envfile" | LC_ALL=C tr -d '\000-\037\177' | sed 's/\[[0-9;?]*[A-Za-z~]//g')
+email_re='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(,[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})*$'
+while :; do
+  emails=$(ask "運営者ページにログインするメールアドレス（複数ならカンマ区切り）[${current}]：")
+  emails="${emails:-$current}"
+  emails="${emails// /}"
+  [[ "$emails" =~ $email_re ]] && break
+  echo "  メールアドレスの形になっていません。もう一度入力してください（例：name@gmail.com）"
+done
 printf 'ADMIN_EMAILS=%s\n' "$emails" > "$envfile"
-echo "  → $envfile に保存しました（この Cloud Shell の中だけに置かれ、公開されません）"
+echo "  → 運営者のメールアドレス：$emails"
+echo "     （$envfile に保存しました。この Cloud Shell の中だけに置かれ、公開されません）"
 
 # ---- サーバー側の部品
 say "サーバー側の部品を準備しています（1〜2分かかります）…"

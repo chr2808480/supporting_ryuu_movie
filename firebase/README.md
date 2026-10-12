@@ -61,7 +61,7 @@
 次の1行を **まるごとコピー** して、黒い画面をクリックしてから貼り付け、**Enter** を押します。
 
 ```bash
-git clone -b claude/laughing-hamilton-dp64zk https://github.com/chr2808480/supporting_ryuu_movie.git && cd supporting_ryuu_movie/firebase && bash setup.sh
+git clone https://github.com/chr2808480/supporting_ryuu_movie.git && cd supporting_ryuu_movie/firebase && bash setup.sh
 ```
 
 - 貼り付けは **Ctrl+V**（Mac は **⌘+V**）。うまくいかないときは、右クリック →「貼り付け」。
@@ -84,13 +84,13 @@ git clone -b claude/laughing-hamilton-dp64zk https://github.com/chr2808480/suppo
 ### 途中で止まったとき
 
 - 「止まりました：」のあとに、何をすればよいかが日本語で出ます。そのとおりにしてから、もう一度実行します。
-- もう一度実行するときは、次の1行を貼って Enter（ファイルはもうコピー済みなので、最初の1行とは違います。プログラムが直っていれば、それも取り込みます）。
+- もう一度実行するときは、次の1行を貼って Enter（ファイルはもうコピー済みなので、最初の1行とは違います。GitHub の最新の状態に合わせてから実行します）。
   ```bash
-  cd ~/supporting_ryuu_movie/firebase && git pull && bash setup.sh
+  cd ~/supporting_ryuu_movie/firebase && git fetch origin && git reset --hard origin/main && bash setup.sh
   ```
 - 最初の長い1行を2回貼ると、フォルダの中に同じフォルダがもう一つできてしまいます。そうなったら、次の1行で作り直します（消えるのは Cloud Shell の中のコピーだけで、GitHub のものは消えません）。
   ```bash
-  cd ~ && rm -rf supporting_ryuu_movie && git clone -b claude/laughing-hamilton-dp64zk https://github.com/chr2808480/supporting_ryuu_movie.git && cd supporting_ryuu_movie/firebase && bash setup.sh
+  cd ~ && rm -rf supporting_ryuu_movie && git clone https://github.com/chr2808480/supporting_ryuu_movie.git && cd supporting_ryuu_movie/firebase && bash setup.sh
   ```
 - 日本語入力がオンのままでも答えられますが、うまくいかないときはオフ（半角英数）にしてください。
 - 何度実行しても大丈夫です。合言葉は作り直しません。
