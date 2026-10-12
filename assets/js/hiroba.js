@@ -268,23 +268,31 @@
     return article;
   }
 
+  // 赤い打ち文字の ★（絵文字の ⭐ ではない）。記号名で読み上げられないよう、読み上げには「星」と伝える
+  function starMark() {
+    return el("span", { className: "hb-star-mark" }, [
+      el("span", { "aria-hidden": "true", text: "★" }),
+      el("span", { className: "sr-only", text: "星" })
+    ]);
+  }
+
   function renderActions(p, mine) {
     var actions = el("div", { className: "hb-actions" });
 
-    // ⭐ の数は投稿者本人にだけ見せる（他人には数を出さない）
+    // ★ の数は投稿者本人にだけ見せる（他人には数を出さない）
     if (mine) {
       actions.appendChild(el("span", { className: "hb-starcount" }, [
-        "⭐ ", el("strong", { text: String(p.stars) }), "（数はあなたにだけ表示）"
+        starMark(), " ", el("strong", { text: String(p.stars) }), "（数はあなたにだけ表示）"
       ]));
     } else {
-      // 押す前は ⭐ だけ。押したら「オラ！」と出す（もう一度押すと取り消し）
+      // 押す前は ★ だけ。押したら ★ がほんのり光り「オラ！」と出す（もう一度押すと取り消し）
       var on = !!state.starred[p.id];
       actions.appendChild(el("button", {
         type: "button", className: "hb-act hb-star" + (state.popStar === p.id ? " is-pop" : ""),
         "data-action": "star", "data-id": p.id, "data-key": "star:" + p.id, "aria-pressed": on ? "true" : "false"
       }, on
-        ? ["⭐", el("span", { className: "hb-ora", text: "オラ！" })]
-        : ["⭐", el("span", { className: "sr-only", text: "を送る" })]
+        ? [starMark(), el("span", { className: "hb-ora", text: "オラ！" })]
+        : [starMark(), el("span", { className: "sr-only", text: "を送る" })]
       ));
     }
 
@@ -384,7 +392,7 @@
   function renderMenu() {
     menuEl.textContent = "";
     if (!state.me) {
-      menuEl.appendChild(el("p", { className: "hb-menu-note", text: "参加すると、投稿・返信・⭐・ミュートができます。" }));
+      menuEl.appendChild(el("p", { className: "hb-menu-note" }, ["参加すると、投稿・返信・", starMark(), "・ミュートができます。"]));
       menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
         el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })
       ]));
