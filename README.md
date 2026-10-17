@@ -58,6 +58,7 @@ kanri.html              運営者ページ（確認待ちの公開・通報・�
 emailjs/                お問い合わせメールの見た目（EmailJS のテンプレート本文）。EmailJS のダッシュボードに貼り付けて使う
 firebase/               サーバー側（Cloud Functions・Firestore のルール・テスト）。手順は firebase/README.md
 launch-checklist.md     星軍基地を正式に公開する前の確認リスト（設定・規約・法令・運営体制）
+launch-plan.md          公開日（2026-11-14）からの盛り上げ計画と、これから足すページの案
 research.md             調査メモ・情報源・確度（更新前に必読）
 operations.md           運営ガイド（非公式サイトとして守ること、更新手順）
 ```
