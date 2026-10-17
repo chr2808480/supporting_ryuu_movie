@@ -11,6 +11,14 @@
 <meta property="og:title" content="RyuU星軍 本部 ｜ 非公式ファンクラブ">
 <meta property="og:description" content="ファン有志による RyuU さん非公式応援サイト。プロフィール・公式リンク・応援マナーまとめ。">
 <meta property="og:locale" content="ja_JP">
+<meta property="og:url" content="https://chr2808480.github.io/supporting_ryuu_movie/">
+<meta property="og:site_name" content="ryuu星軍 本部">
+<!-- 共有したときの画像は、文字だけのファン自作バナー（本人の画像・ロゴは使わない。operations.md 1.） -->
+<meta property="og:image" content="https://chr2808480.github.io/supporting_ryuu_movie/assets/img/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ryuu星軍 本部 — RyuU 非公式ファンクラブ。ファン有志による非公式・非営利のファンサイトです">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90' fill='%23ff4d5e'%3E%E2%98%85%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -35,6 +43,7 @@
         <span class="nav-bars" aria-hidden="true"></span>
       </button>
       <ul id="nav-list">
+        <li><a href="guide.html">はじめての方へ</a></li>
         <li><a href="#about">RyuUさんとは</a></li>
         <li><a href="#profile">プロフィール・公式リンク</a></li>
         <li><a href="#join">入軍案内</a></li>
@@ -61,8 +70,23 @@
         心に空条承太郎を宿したオタクを勝手に応援するページ。<br>
         合言葉は <button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button>
       </p>
+
+      <!-- 星軍基地の正式オープンの告知。main.js が日本時間で「前日まで（before）/ 当日（day）/ 翌日から（after）」を切り替え、
+           data-phase に書いた時期だけ表示する。JavaScript が動かないときは「前日まで」の文が出る -->
+      <aside class="launch" data-phase="before day" aria-labelledby="launch-title">
+        <p class="launch-date" id="launch-title"><span>2026.11.14</span> SAT 6:00 <strong>星軍基地 OPEN</strong></p>
+        <p class="launch-text" data-phase="before">RyuU さんの活動開始から、ちょうど3年の日。ファンの交流スペース「星軍基地」が正式オープンします。</p>
+        <p class="launch-text" data-phase="day" hidden>本日、ファンの交流スペース「星軍基地」が正式オープン！ RyuU さん、活動3周年おめでとうございます。</p>
+        <p class="launch-note">ファン有志による非公式の企画です。ご本人・公式の企画ではありません。</p>
+        <p class="launch-links">
+          <a href="#hiroba">基地の案内を見る</a>
+          <a href="https://x.com/intent/tweet?text=RyuU%20%E3%81%95%E3%82%93%E3%82%92%E5%BF%9C%E6%8F%B4%E3%81%99%E3%82%8B%E3%80%81%E3%83%95%E3%82%A1%E3%83%B3%E6%9C%89%E5%BF%97%E3%81%AE%E9%9D%9E%E5%85%AC%E5%BC%8F%E3%82%B5%E3%82%A4%E3%83%88%E3%80%8Cryuu%E6%98%9F%E8%BB%8D%20%E6%9C%AC%E9%83%A8%E3%80%8D&amp;url=https%3A%2F%2Fchr2808480.github.io%2Fsupporting_ryuu_movie%2F" target="_blank" rel="noopener">このサイトを X で知らせる</a>
+        </p>
+      </aside>
+
       <div class="hero-cta">
         <a class="btn btn-primary" href="#profile">公式リンクを見る</a>
+        <a class="btn btn-ghost" href="guide.html">はじめての方へ</a>
       </div>
     </div>
   </section>
@@ -151,7 +175,7 @@
           <span class="step-n">1</span>
           <div>
             <h3>まずは1本観る</h3>
-            <p>手始めとして、YouTubeの『ゲーム実況動画ァ！』のプレイリストからおひとつどうぞ。「声で全部持っていく」感じが伝わるはず。</p>
+            <p>手始めとして、YouTubeの『ゲーム実況動画ァ！』のプレイリストからおひとつどうぞ。「声で全部持っていく」感じが伝わるはず。時間に合わせた選び方や用語は<a href="guide.html">はじめての方へ</a>にまとめています。</p>
           </div>
         </li>
         <li class="step">
@@ -174,6 +198,7 @@
           <div>
             <h3><button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button> で発信</h3>
             <p>感想・ファンアートはこのタグで。タグを付ければ本人にもファンにも届きやすい！ ただし本人や原作にも配慮を。</p>
+            <p><a href="https://x.com/intent/tweet?hashtags=ryuu%E6%98%9F%E8%BB%8D" target="_blank" rel="noopener">X で #ryuu星軍 を付けて書く</a></p>
           </div>
         </li>
       </ol>
@@ -181,8 +206,8 @@
       <!-- ===== 星軍基地（準備中）の案内 ===== -->
       <div class="hiroba-intro" id="hiroba">
         <div class="hiroba-intro-text">
-          <h3 class="mini-title">　星軍基地 <span class="hiroba-badge">準備中</span></h3>
-          <p>配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースを準備しています。<button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button> の代わりではなく、補う場所です。</p>
+          <h3 class="mini-title">　星軍基地 <span class="hiroba-badge" data-phase="before">11.14 オープン</span><span class="hiroba-badge" data-phase="day after" hidden>オープン中</span></h3>
+          <p><span data-phase="before">配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースを準備しています。</span><span data-phase="day after" hidden>配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースです。</span><button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button> の代わりではなく、補う場所です。</p>
           <ul class="hiroba-points">
             <li>表示名だけで参加。メールアドレスなどは他の人に見えません</li>
             <li>ネタバレの折りたたみ、ミュート、通報つき</li>
@@ -191,7 +216,8 @@
         </div>
         <div class="hiroba-intro-cta">
           <a class="btn btn-ghost" href="hiroba.html">基地をのぞく</a>
-          <span class="note-inline">いまは正式公開前の試験運用中です。投稿は実際に保存され、誰でも見られます。参加登録は、利用規約が確定する正式公開までお待ちください。</span>
+          <span class="note-inline" data-phase="before">いまは正式公開前の試験運用中です。投稿は実際に保存され、誰でも見られます。参加登録は 11月14日（土）6:00 から受け付けます。</span>
+          <span class="note-inline" data-phase="day after" hidden>参加登録は無料です。読むだけなら登録はいりません。</span>
         </div>
       </div>
     </div>
@@ -240,7 +266,7 @@
           <div class="faq is-sm">
             <details>
               <summary>どこから観ればいいですか？</summary>
-              <p>まずはYouTubeから。時間がないならショート動画、じっくり観たいなら声真似ゲーム配信がおすすめです。</p>
+              <p>まずはYouTubeから。時間がないならショート動画、じっくり観たいなら声真似ゲーム配信がおすすめです。くわしくは<a href="guide.html">はじめての方へ</a>をどうぞ。</p>
             </details>
             <details>
               <summary>ジョジョを読んでいなくても楽しめますか？</summary>

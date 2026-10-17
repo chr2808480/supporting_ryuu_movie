@@ -106,11 +106,17 @@
     var F = conn.F, auth = conn.auth, db = conn.db, call = conn.call;
 
     var data = {
-      me: null,             // { id, handle, suspendedUntil }
+      me: null,             // { id, handle, suspendedUntil, staff }
       needsProfile: false,  // ログインはしたが、表示名をまだ決めていない
       site: { absent: false, news: [] },
-      posts: [], muted: [], blocked: [], starred: {}, replyLog: [], notices: []
+      posts: [], muted: [], blocked: [], starred: {}, replyLog: [], notices: [],
+      hasMore: false        // 読み込んだ分より前の投稿がまだあるかもしれない
     };
+
+    // 公開中の投稿は、新しい順に PAGE 件ずつ読む（Firestore のルールの上限が100件）。「もっと見る」を押すたびに1ページ増やし、
+    // 読み直すとき（投稿したあとなど）も同じページ数だけ読む
+    var PAGE = 100, REPLY_PAGE = 300, REPLY_PAGES_MAX = 10;
+    var pages = 1;
 
     function ms(t) { return t && typeof t.toMillis === "function" ? t.toMillis() : 0; }
 
@@ -122,16 +128,38 @@
       var snap = await F.getDoc(F.doc(db, "users/" + user.uid));
       if (!snap.exists()) { data.needsProfile = true; return; }
       var u = snap.data();
-      data.me = { id: user.uid, handle: u.handle, suspendedUntil: ms(u.suspendedUntil) };
+      // 運営者かどうか（返信の上限の表示に使う。判定の本体はサーバー側）
+      var claims = (await user.getIdTokenResult()).claims;
+      data.me = { id: user.uid, handle: u.handle, suspendedUntil: ms(u.suspendedUntil), staff: claims.admin === true };
+    }
+
+    // 新しい順に読み、件数が上限に届いたら続きを読む。stop(最後の文書) が真なら、そこでやめる
+    async function pagedDocs(base, size, maxPages, stop) {
+      var docs = [], last = null;
+      for (var i = 0; i < maxPages; i++) {
+        var parts = base.slice();
+        if (last) parts.push(F.startAfter(last));
+        parts.push(F.limit(size));
+        var snap = await F.getDocs(F.query.apply(null, parts));
+        docs = docs.concat(snap.docs);
+        if (snap.docs.length < size) return { docs: docs, more: false };
+        last = snap.docs[snap.docs.length - 1];
+        if (stop && stop(last)) break;
+      }
+      return { docs: docs, more: true };
     }
 
     async function loadAll() {
       var Q = F.query, W = F.where, O = F.orderBy, L = F.limit;
       var uid = data.me && data.me.id;
+      var postPage = await pagedDocs([F.collection(db, "posts"), W("state", "==", "public"), O("createdAt", "desc")], PAGE, pages);
+      // 返信は投稿より後に書かれるので、読んだ投稿のうち一番古いものより新しい返信を読めば足りる
+      var oldest = postPage.docs.length ? ms(postPage.docs[postPage.docs.length - 1].data().createdAt) : 0;
       var jobs = [
         F.getDoc(F.doc(db, "config/site")),
-        F.getDocs(Q(F.collection(db, "posts"), W("state", "==", "public"), O("createdAt", "desc"), L(50))),
-        F.getDocs(Q(F.collectionGroup(db, "replies"), W("state", "==", "public"), O("createdAt", "desc"), L(300)))
+        Promise.resolve(postPage),
+        pagedDocs([F.collectionGroup(db, "replies"), W("state", "==", "public"), O("createdAt", "desc")], REPLY_PAGE, REPLY_PAGES_MAX,
+          function (last) { return ms(last.data().createdAt) < oldest; })
       ];
       if (uid) {
         jobs.push(
@@ -153,7 +181,7 @@
       function addPost(d) {
         var x = d.data();
         posts[d.id] = {
-          id: d.id, authorId: x.authorUid, author: x.authorHandle, tag: x.tag, body: x.body,
+          id: d.id, authorId: x.authorUid, author: x.authorHandle, staff: x.byAdmin === true, tag: x.tag, body: x.body,
           at: ms(x.createdAt), spoiler: !!x.spoiler, held: x.state === "held", stars: 0, replies: []
         };
       }
@@ -162,7 +190,7 @@
         var p = posts[x.postId];
         if (!p || p.replies.some(function (y) { return y.id === d.id; })) return;
         p.replies.push({
-          id: d.id, authorId: x.authorUid, author: x.authorHandle, toId: x.toUid, to: x.toHandle,
+          id: d.id, authorId: x.authorUid, author: x.authorHandle, staff: x.byAdmin === true, toId: x.toUid, to: x.toHandle,
           body: x.body, at: ms(x.createdAt), held: x.state === "held"
         });
       }
@@ -170,6 +198,7 @@
       if (uid) r[3].docs.forEach(addPost);
       r[2].docs.forEach(addReply);
       if (uid) r[4].docs.forEach(addReply);
+      data.hasMore = postPage.more;
 
       data.starred = {};
       data.muted = [];
@@ -220,6 +249,7 @@
       data: data,
       signIn: signIn,
       refresh: refresh,
+      loadMore: function () { pages += 1; return loadAll(); },
       email: function () { return auth.currentUser ? auth.currentUser.email : ""; },
 
       sendLink: function (email, handle) { return conn.sendLink(email, { handle: handle, agreed: true }); },

@@ -41,6 +41,46 @@ test("参加登録：同意・表示名の確認と、表示名の重複", async
   assert.equal(user.email, undefined, "メールアドレスは Firestore に置かない");
 });
 
+test("参加登録：受付開始より前は、運営者のメールアドレスだけが登録できる", async () => {
+  // テストでは受付開始を 2026-10-01 6:00（日本時間）にしている（functions/.env.demo-hiroba）
+  at(Date.UTC(2026, 8, 30, 20, 58, 0));   // 呼ぶたびに1分進むので、受付開始の1分前に呼ぶことになる
+  const a = await signIn("a@example.com");
+  assert.equal(await reasonOf(call("registerProfile", { handle: "流れ星", age16: true, agree: true }, a)), "not-open");
+  const admin = await signIn("admin@example.com");
+  assert.equal((await call("registerProfile", { handle: "見張り番", age16: true, agree: true }, admin)).handle, "見張り番");
+  at(Date.UTC(2026, 8, 30, 21, 0, 0));
+  assert.equal((await call("registerProfile", { handle: "流れ星", age16: true, agree: true }, a)).handle, "流れ星");
+});
+
+test("運営者の投稿・返信：「運営」の印が付き、リンクがあっても確認待ちにせず、返信の上限に数えない", async () => {
+  const a = await member("a@example.com", "流れ星");
+  const b = await member("b@example.com", "星屑");
+  await call("claimAdmin", {}, await signIn("admin@example.com"));
+  const admin = await signIn("admin@example.com");   // 権限を反映したトークンを取り直す
+  await call("registerProfile", { handle: "見張り番", age16: true, agree: true }, admin);
+
+  const welcome = await post(admin, "ようこそ。使い方は https://example.com/guide.html");
+  assert.equal(welcome.state, "public");
+  assert.equal((await db.doc("posts/" + welcome.id).get()).data().byAdmin, true);
+  assert.equal((await call("editPost", { postId: welcome.id, body: "追記 https://example.com/more" }, admin)).state, "public");
+
+  // 運営者の投稿には、何度でも返信できる
+  for (let i = 0; i < 5; i++) await call("createReply", { postId: welcome.id, body: "よろしく" + i }, b);
+  // 運営者は、同じ人の投稿に何度でも返信できる。返信にも印が付く
+  const own = await post(a, "はじめまして");
+  for (let i = 0; i < 4; i++) await call("createReply", { postId: own.id, body: "ようこそ" + i }, admin);
+  const replies = (await db.collection("posts/" + own.id + "/replies").get()).docs.map((d) => d.data());
+  assert.equal(replies.length, 4);
+  assert.ok(replies.every((r) => r.byAdmin === true));
+
+  // ほかの人どうしは、これまでどおり3回まで。印は付かない
+  assert.equal((await db.doc("posts/" + own.id).get()).data().byAdmin, false);
+  for (let i = 0; i < 3; i++) await call("createReply", { postId: own.id, body: "返信" + i }, b);
+  assert.equal(await reasonOf(call("createReply", { postId: own.id, body: "4回目" }, b)), "reply-limit");
+  const plain = (await db.collection("posts/" + own.id + "/replies").where("authorUid", "==", b.uid).get()).docs;
+  assert.ok(plain.every((r) => r.data().byAdmin === false));
+});
+
 test("投稿：受付時間・運営者不在・個人情報の確認・リンクの保留・連投の間隔", async () => {
   assert.equal(await reasonOf(call("createPost", { tag: "感想", body: "x" })), "unauthenticated");
   const a = await signIn("a@example.com");

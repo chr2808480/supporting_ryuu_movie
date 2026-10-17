@@ -112,6 +112,7 @@
 /* --------------------------------------------------------- 参加の案内 */
 .hb-join { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; }
 .hb-join-text { margin: 0; font-size: .88rem; color: var(--ink-mute); flex: 1 1 16rem; }
+.hb-join-soon { margin: 0; font-size: .9rem; font-weight: 700; color: var(--ink); flex: 1 1 16rem; }
 
 /* --------------------------------------------------------- 投稿フォーム */
 .hb-form { display: grid; gap: .8rem; }
@@ -187,6 +188,12 @@
   font-size: .66rem; font-weight: 700; padding: 0 .45rem; border-radius: 999px;
   color: var(--bg); background: var(--ink-mute);
 }
+/* 運営者が書いたものの印（表示名に「運営」は使えないので、これがある投稿・返信だけが運営者のもの） */
+.hb-staff {
+  font-size: .66rem; font-weight: 700; padding: 0 .45rem; border-radius: 999px;
+  color: var(--bg); background: var(--red-soft);
+}
+.hb-more-posts { display: flex; justify-content: center; padding: .3rem 0 .6rem; }
 .hb-tag {
   font-size: .7rem; font-weight: 700; color: var(--red-soft);
   border: 1px solid rgba(255,154,163,.45); border-radius: 999px; padding: 0 .55rem;
