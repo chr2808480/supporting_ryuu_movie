@@ -335,12 +335,6 @@
 .doc-article .hb-table { min-width: 38rem; }
 .doc-article .fineprint { margin-top: .4rem; }
 
-/* 公開前に決めて書き入れる箇所 */
-.doc-fill {
-  display: inline-block; padding: 0 .5rem; border: 1px dashed var(--red-soft); border-radius: 6px;
-  font-size: .82em; font-weight: 700; color: var(--red-soft); background: rgba(255,154,163,.08);
-}
-
 /* --------------------------------------------------------- ダイアログ */
 .hb-dialog {
   width: min(30rem, calc(100% - 2rem)); max-height: calc(100% - 2rem);
