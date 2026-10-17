@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join as joinPath, normalize } from "node:path";
 import assert from "node:assert/strict";
 import { chromium } from "playwright";
+import { Timestamp } from "firebase-admin/firestore";
 import { db, auth, PROJECT } from "./helpers.mjs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
@@ -15,7 +16,8 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", "
 const TEST_CONFIG = "window.HB_FIREBASE = " + JSON.stringify({
   config: { apiKey: "fake-api-key", authDomain: PROJECT + ".firebaseapp.com", projectId: PROJECT, appId: "demo" },
   region: "asia-northeast1",
-  useEmulators: true
+  useEmulators: true,
+  openAt: Date.parse("2026-10-01T06:00:00+09:00")   // 参加登録の受付開始（functions/.env.demo-hiroba と同じ）
 }) + ";";
 
 const server = createServer(async (req, res) => {
@@ -167,6 +169,31 @@ try {
   await k.click('#kn-reports [data-do="resolve"]');
   await expectToast(k, /対応済みにしました/);
 
+  // 7b. 運営者が基地で参加登録して投稿すると「運営」の印が付き、リンクがあってもすぐ公開される。
+  //     運営者の投稿への返信には回数の上限がない
+  const h = await k.context().newPage();
+  h.on("pageerror", (e) => errors.push(e.message));
+  await h.goto(ORIGIN + "/hiroba.html");
+  await h.waitForFunction(() => document.getElementById("dlg-join").open);   // ログイン済みで表示名がまだ
+  await h.check('input[name="age"]');
+  await h.check('input[name="agree"]');
+  await h.click("[data-next]");
+  await h.fill("#join-name", "見張り番");
+  await h.click('#join-form button[type="submit"]');
+  await expectToast(h, /参加登録が済みました/);
+  await h.check('input[name="tag"][value="雑談"]');
+  await h.fill("#hb-body", "星軍基地へようこそ。案内は https://example.com/guide.html");
+  await h.click('#hb-form button[type="submit"]');
+  await expectToast(h, /投稿しました ★/);
+  await b.reload();
+  const welcome = b.locator(".hb-post", { hasText: "星軍基地へようこそ" });
+  await welcome.waitFor();
+  assert.equal(await welcome.locator(".hb-post-head .hb-staff").textContent(), "運営");
+  await welcome.locator('[data-action="reply"]').click();
+  assert.match(await welcome.locator(".hb-limit").textContent(), /上限はありません/);
+  await welcome.locator('[data-action="reply"]').click();
+  assert.equal(await b.locator('.hb-post:has-text("おすすめ https://example.com/video") .hb-staff').count(), 0);
+
   // 公開された投稿は別の人にも見え、非表示にした投稿は見えない。処置は本人のメニューに出る
   await b.reload();
   await b.waitForSelector('.hb-post:has-text("おすすめ https://example.com/video")');
@@ -213,6 +240,55 @@ try {
   await expectToast(c2, /メールアドレスを削除しました/);
   await c2.waitForSelector("#hb-join:not([hidden])");
   await assert.rejects(auth.getUser(pendingUid));
+
+  // 10. 参加登録の受付開始より前は、参加の案内の代わりに開始日時を出し、★からもリンクを送る画面を開かない
+  const soon = await (await browser.newContext()).newPage();
+  soon.on("pageerror", (e) => errors.push(e.message));
+  await soon.route("**/assets/js/hiroba-config.js", (route) => route.fulfill({
+    contentType: "text/javascript",
+    body: TEST_CONFIG.replace(/"openAt":\d+/, '"openAt":' + (Date.now() + 7 * 24 * 3600 * 1000))
+  }));
+  await soon.goto(ORIGIN + "/hiroba.html");
+  await soon.waitForSelector("#hb-join-soon:not([hidden])");
+  assert.match(await soon.textContent("#hb-join-soon"), /参加登録は .+ から受け付けます/);
+  assert.equal(await soon.isVisible('#hb-join [data-open="join"]'), false);
+  assert.equal(await soon.locator('#hb-menu [data-open="join"]').count(), 0);
+  await soon.locator('.hb-post [data-action="star"]').first().click();
+  await expectToast(soon, /から受け付けます/);
+  assert.equal(await soon.evaluate(() => document.getElementById("dlg-join").open), false);
+
+  // 11. 投稿が100件を超えたら「もっと見る」で前の投稿を読む。前の投稿への返信も、返信が300件を超えていても出る
+  const seed = db.batch();
+  const base = Date.now() - 24 * 3600 * 1000;
+  const ids = [];
+  for (let i = 0; i < 105; i++) {
+    const ref = db.collection("posts").doc();
+    ids.push(ref.id);
+    seed.set(ref, {
+      authorUid: "seed", authorHandle: "種まき", byAdmin: false, tag: "雑談", body: "古い投稿-" + String(i).padStart(3, "0"),
+      spoiler: false, state: "public", createdAt: Timestamp.fromMillis(base - i * 60 * 1000), editedAt: null
+    });
+  }
+  const reply = (postId, body, t) => seed.set(db.collection("posts/" + postId + "/replies").doc(), {
+    postId, authorUid: "seed2", authorHandle: "返信係", byAdmin: false, toUid: "seed", toHandle: "種まき",
+    body, state: "public", createdAt: Timestamp.fromMillis(t)
+  });
+  for (let j = 0; j < 301; j++) reply(ids[0], "新しい返信-" + j, base + (j + 1) * 1000);
+  reply(ids[104], "いちばん古い返信", base - 104 * 60 * 1000 + 1000);
+  await seed.commit();
+
+  const many = await (await browser.newContext()).newPage();
+  many.on("pageerror", (e) => errors.push(e.message));
+  await many.goto(ORIGIN + "/hiroba.html");
+  await many.waitForSelector('[data-action="more-posts"]');
+  assert.equal(await many.locator(".hb-post").count(), 100);
+  assert.equal(await many.locator('.hb-post:has-text("古い投稿-104")').count(), 0);
+  await many.click('[data-action="more-posts"]');
+  await many.waitForSelector('.hb-post:has-text("古い投稿-104") .hb-reply >> text=いちばん古い返信');
+  assert.equal(await many.locator(".hb-post").count(), 107);
+  assert.equal(await many.locator('[data-action="more-posts"]').count(), 0);
+  assert.equal(await many.locator('.hb-post:has-text("古い投稿-000") .hb-reply').count(), 301);
+  if (process.env.E2E_SHOTS) await h.screenshot({ path: process.env.E2E_SHOTS + "/hiroba-staff.png", fullPage: false });
 
   console.log("e2e: hiroba + kanri ok");
   if (errors.length) throw new Error("ページのエラー: " + errors.join(" / "));

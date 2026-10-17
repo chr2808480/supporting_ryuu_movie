@@ -27,6 +27,8 @@
 
 /* --------------------------------------------------------- reset / base */
 *, *::before, *::after { box-sizing: border-box; }
+/* 時期や状態で隠したものは、表示の指定（display）があっても必ず隠す */
+[hidden] { display: none !important; }
 
 html { scroll-behavior: smooth; scroll-padding-top: 80px; }
 
@@ -176,7 +178,8 @@ code {
 .nav-bars::before { top: -6px; }
 .nav-bars::after  { top: 6px; }
 
-@media (max-width: 860px) {
+/* ナビの項目が1段に収まらない幅では、メニューボタンにまとめる（トップは7項目） */
+@media (max-width: 980px) {
   .nav-toggle { display: block; }
   .site-nav ul {
     position: absolute; right: 1rem; top: 68px;
@@ -211,6 +214,20 @@ code {
 .hero-lead { margin: 1.6rem auto 0; max-width: 40rem; color: var(--ink-mute); font-size: .98rem; }
 
 .hero-cta { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; margin-top: 2.2rem; }
+
+/* 星軍基地の正式オープンの告知（main.js が時期で出し分ける） */
+.launch {
+  margin: 2rem auto 0; max-width: 40rem; padding: 1.1rem 1.3rem;
+  background: rgba(255,77,94,.08); border: 1px solid rgba(255,77,94,.45);
+  border-radius: var(--radius-lg);
+}
+.launch-date { margin: 0; font-size: .78rem; letter-spacing: .2em; color: var(--red-soft); }
+.launch-date span { font-size: 1.05rem; font-weight: 800; letter-spacing: .08em; color: var(--ink); }
+.launch-date strong { display: block; margin-top: .2rem; font-size: 1.15rem; letter-spacing: .14em; color: var(--red); }
+.launch-text { margin: .6rem 0 0; font-size: .92rem; }
+.launch-note { margin: .4rem 0 0; font-size: .76rem; color: var(--ink-mute); }
+.launch-links { margin: .7rem 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.2rem; font-size: .84rem; }
+.launch-links a { color: var(--red-soft); }
 
 .btn {
   display: inline-block; padding: .85rem 1.7rem; border-radius: 999px;
@@ -370,6 +387,7 @@ code {
 }
 .step h3 { margin: .15rem 0 .35rem; font-size: 1rem; color: var(--red-soft); }
 .step p  { margin: 0; font-size: .88rem; color: var(--ink-mute); }
+.step p + p { margin-top: .45rem; }
 
 /* --------------------------------------------------------- 星軍基地の案内 */
 .hiroba-intro {

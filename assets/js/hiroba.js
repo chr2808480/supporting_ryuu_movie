@@ -12,7 +12,10 @@
     closedFrom: 23,                      // 新規投稿を止める時刻（日本時間）
     closedUntil: 6,                      // 新規投稿を再開する時刻（日本時間）
     replyLimit: 3,                       // 同じ相手とのやりとりの上限
-    replyWindowMs: 24 * 60 * 60 * 1000   // 上限を数える期間
+    replyWindowMs: 24 * 60 * 60 * 1000,  // 上限を数える期間
+    // 参加登録の受付開始（日本時間 2026-11-14 6:00）。functions/index.js の OPEN_AT、main.js の LAUNCH_AT と同じにする。
+    // テストでは hiroba-config.js の openAt で差し替える
+    openAt: Date.UTC(2026, 10, 13, 21, 0, 0)
   };
 
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
@@ -37,6 +40,9 @@
   var state = {
     me: null,          // 自分の表示名
     meId: null,        // 自分の ID（デモでは表示名と同じ）
+    meStaff: false,    // 自分が運営者か（返信の上限の表示に使う）
+    hasMore: false,    // 読み込んだ分より前の投稿がまだあるかもしれない（本番だけ）
+    loadingMore: false,
     suspendedUntil: 0, // 投稿停止の期限
     site: { absent: false, news: [] },
     notices: [],       // 自分が受けた処置
@@ -55,6 +61,9 @@
     openSpoilers: {},  // 開いたネタバレ折りたたみ（描き直しても閉じないように）
     piiAccepted: false,
     posts: [
+      sample("本部の見張り番", "雑談",
+        "（サンプル）星軍基地へようこそ。運営者の投稿・返信には「運営」の印が付きます。はじめての方は、まず「質問」タグでどうぞ。",
+        10 * MIN, { staff: true }),
       sample("しずかな流れ星", "感想",
         "（サンプル）土曜の配信、ゲームの説明まで承太郎の声のままで、最後まで笑いっぱなしでした。初めての人にもすすめたい回。",
         40 * MIN, { replies: [sampleReply("星屑ノート", "しずかな流れ星", "（サンプル）わかります、ツッコミまで声が崩れないのがすごい。", 25 * MIN)] }),
@@ -164,17 +173,29 @@
     return /[\p{Default_Ignorable_Code_Point}\p{Cf}]/u.test(rest);
   }
 
-  /* ------------------------------------------------ 返信の上限（同じ相手と24時間で3回まで） */
-  function repliesLeft(toId) {
-    if (isMine(toId)) return Infinity;
+  /* ------------------------------------------------ 返信の上限（同じ相手と24時間で3回まで。運営者の投稿への返信と、運営者の返信は数えない） */
+  function repliesLeft(p) {
+    if (isMine(p.authorId) || p.staff || state.meStaff) return Infinity;
     var since = Date.now() - CONFIG.replyWindowMs;
-    var used = state.replyLog.filter(function (r) { return r.to === toId && r.at > since; }).length;
+    var used = state.replyLog.filter(function (r) { return r.to === p.authorId && r.at > since; }).length;
     return Math.max(0, CONFIG.replyLimit - used);
   }
+
+  /* ------------------------------------------------ 参加登録の受付開始（それまでは読むだけ。本番だけ止める） */
+  function joinClosed() { return !!live && Date.now() < CONFIG.openAt; }
+  function openLabel() {
+    var d = new Date(CONFIG.openAt + JST_OFFSET);
+    return (d.getUTCMonth() + 1) + "月" + d.getUTCDate() + "日（" + "日月火水木金土".charAt(d.getUTCDay()) + "）" +
+      d.getUTCHours() + ":" + String(d.getUTCMinutes()).padStart(2, "0");
+  }
+  function soonText() { return "参加登録は " + openLabel() + " から受け付けます。読むのは、いまでもできます。"; }
 
   /* ================================================ 描画 */
   var statusEl = $("#hb-status");
   var joinBox = $("#hb-join");
+  var joinText = $(".hb-join-text", joinBox);
+  var joinButton = $("[data-open]", joinBox);
+  var joinSoon = $("#hb-join-soon");
   var form = $("#hb-form");
   var fields = $("#hb-fields");
   var closedEl = $("#hb-closed");
@@ -219,6 +240,11 @@
   function renderComposer() {
     var ps = postingState();
     joinBox.hidden = !!state.me || state.loading;
+    var closed = joinClosed();
+    joinText.hidden = closed;
+    joinButton.hidden = closed;
+    joinSoon.hidden = !closed;
+    if (closed) joinSoon.textContent = soonText();
     form.hidden = !state.me || state.loading;
     if (!state.me) return;
     $("#hb-me-name").textContent = state.me;
@@ -240,10 +266,15 @@
     hiddenNote.textContent = "ミュート・ブロック中の人の投稿 " + hiddenCount + " 件を表示していません（相手には知らされません）。";
 
     if (!visible.length) {
-      postsEl.appendChild(el("p", { className: "hb-panel hb-empty", text: "この話題の投稿はまだありません。" }));
-      return;
+      postsEl.appendChild(el("p", { className: "hb-panel hb-empty", text: state.hasMore ? "読み込んだ中には、この話題の投稿はありません。" : "この話題の投稿はまだありません。" }));
     }
     visible.forEach(function (p) { postsEl.appendChild(renderPost(p)); });
+    if (state.hasMore) {
+      postsEl.appendChild(el("div", { className: "hb-more-posts" }, [
+        el("button", { type: "button", className: "hb-chip", "data-action": "more-posts", "data-key": "more-posts", disabled: state.loadingMore,
+          text: state.loadingMore ? "読み込んでいます…" : "前の投稿をもっと見る" })
+      ]));
+    }
   }
 
   function renderBody(p) {
@@ -259,6 +290,7 @@
     var mine = isMine(p.authorId);
     var head = el("header", { className: "hb-post-head" }, [
       el("span", { className: "hb-handle", text: p.author }),
+      staffMark(p),
       mine ? el("span", { className: "hb-you", text: "あなた" }) : null,
       el("span", { className: "hb-tag", text: p.tag }),
       el("time", { className: "hb-time", datetime: new Date(p.at).toISOString(), text: timeLabel(p.at) })
@@ -286,6 +318,11 @@
 
     if (state.replyingTo === p.id) article.appendChild(renderReplyForm(p));
     return article;
+  }
+
+  // 運営者が書いたものの印。表示名に「運営」は使えないので、この印があるものだけが運営者の投稿・返信
+  function staffMark(item) {
+    return item.staff ? el("span", { className: "hb-staff", title: "運営者の投稿です", text: "運営" }) : null;
   }
 
   // 赤い打ち文字の ★（絵文字の ⭐ ではない）。記号名で読み上げられないよう、読み上げには「星」と伝える
@@ -356,6 +393,7 @@
     return el("li", { className: "hb-reply" }, [
       el("div", { className: "hb-post-head" }, [
         el("span", { className: "hb-handle", text: r.author }),
+        staffMark(r),
         mine ? el("span", { className: "hb-you", text: "あなた" }) : null,
         el("span", { className: "hb-to", text: "→ " + r.to }),
         el("time", { className: "hb-time", datetime: new Date(r.at).toISOString(), text: timeLabel(r.at) })
@@ -370,17 +408,23 @@
     var wrap = el("form", { className: "hb-replyform", "data-reply-form": p.id, novalidate: true });
 
     if (!state.me) {
+      if (joinClosed()) {
+        wrap.appendChild(el("p", { className: "hb-limit", text: "返信するには参加登録が必要です。" + soonText() }));
+        return wrap;
+      }
       wrap.appendChild(el("p", { className: "hb-limit", text: "返信するには参加登録が必要です。" }));
       wrap.appendChild(el("div", null, [el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })]));
       return wrap;
     }
 
     var ps = postingState();
-    var left = repliesLeft(p.authorId);
+    var left = repliesLeft(p);
     var blocked = !ps.open || left === 0;
     var limitText;
     if (!ps.open) limitText = CLOSED_TEXT[ps.reason];
-    else if (left === Infinity) limitText = "自分の投稿への返信です。";
+    else if (isMine(p.authorId)) limitText = "自分の投稿への返信です。";
+    else if (state.meStaff) limitText = "運営として返信します（回数の上限はありません）。";
+    else if (p.staff) limitText = "運営の投稿への返信です（回数の上限はありません）。";
     else if (left === 0) limitText = p.author + " さんとのやりとりが " + CONFIG.replyLimit + " 回に達しました。24時間たつと、また返信できます。";
     else limitText = p.author + " さんへの返信：あと " + left + " 回（同じ相手には24時間で" + CONFIG.replyLimit + "回まで）";
 
@@ -429,6 +473,10 @@
         return;
       }
       menuEl.appendChild(el("p", { className: "hb-menu-note" }, ["参加すると、投稿・返信・", starMark(), "・ミュートができます。"]));
+      if (joinClosed()) {
+        menuEl.appendChild(el("p", { className: "hb-menu-note", text: soonText() }));
+        return;
+      }
       menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
         el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })
       ]));
@@ -530,6 +578,9 @@
   function profileOnly() { return !!live && live.data.needsProfile; }
 
   function openJoin(message) {
+    // 受付開始より前は、ログイン用リンクを送らない（★・ミュートなどから開こうとしたときも）。
+    // ログイン済みで表示名だけがまだの人（運営者の準備など）は、サーバーが判定する
+    if (joinClosed() && !profileOnly()) { toast(soonText()); return; }
     joinForm.reset();
     stepOne.hidden = false;
     stepTwo.hidden = true;
@@ -741,7 +792,7 @@
     if (f.hasAttribute("data-reply-form")) {
       var p = findPost(f.getAttribute("data-reply-form"));
       var text = f.elements.reply.value.trim();
-      if (!p || !postingState().open || repliesLeft(p.authorId) === 0) return;
+      if (!p || !postingState().open || repliesLeft(p) === 0) return;
       if (!text) { msg.textContent = "返信の内容を入力してください。"; return; }
       if (detectPII(text).length && !f.hasAttribute("data-warned")) {
         f.setAttribute("data-warned", "");
@@ -823,6 +874,14 @@
     var p = findPost(b.getAttribute("data-id"));
 
     switch (action) {
+      case "more-posts":
+        if (!live || state.loadingMore) return;
+        state.loadingMore = true;
+        renderFeed();
+        live.loadMore().then(sync)
+          .catch(function () { toast("読み込めませんでした。時間をおいて、もう一度お試しください"); })
+          .then(function () { state.loadingMore = false; render(); });
+        return;
       case "star":
         if (!state.me) { openJoin(); return; }
         state.starred[p.id] = !state.starred[p.id];
@@ -956,6 +1015,8 @@
     var d = live.data;
     state.me = d.me ? d.me.handle : null;
     state.meId = d.me ? d.me.id : null;
+    state.meStaff = !!(d.me && d.me.staff);
+    state.hasMore = d.hasMore;
     state.suspendedUntil = d.me ? d.me.suspendedUntil : 0;
     state.site = d.site;
     state.posts = d.posts;
@@ -989,6 +1050,7 @@
   function boot() {
     var setup = window.HB_FIREBASE;
     if (!setup || typeof window.HBLive !== "function") { render(); return; }
+    if (typeof setup.openAt === "number") CONFIG.openAt = setup.openAt;
 
     // 本番：デモの表示とサンプルを片づけてから読み込む
     document.querySelectorAll(".hb-demo").forEach(function (n) { n.hidden = true; });
@@ -1000,6 +1062,7 @@
 
     window.HBLive(setup).then(function (backend) {
       live = backend;
+      wasClosed = joinClosed();
       state.loading = false;
       sync();
       render();
@@ -1020,9 +1083,15 @@
     });
   }
 
+  var wasClosed = false;   // 参加登録の受付前か（本番につないだときに決める）
   boot();
-  // 受付状態と「○分前」の表示を1分ごとに更新する（投稿一覧は作り直さない）
+  // 受付状態と「○分前」の表示を1分ごとに更新する（投稿一覧は作り直さない）。
+  // 参加登録の受付が始まったら、参加の案内を出し直す（書きかけの返信がある参加者の一覧は作り直さない）
   setInterval(function () {
+    if (live && joinClosed() !== wasClosed) {
+      wasClosed = joinClosed();
+      if (state.me) renderMenu(); else render();
+    }
     renderStatus();
     renderComposer();
     document.querySelectorAll("time.hb-time").forEach(function (t) {

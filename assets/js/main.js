@@ -72,6 +72,24 @@
     });
   });
 
+  /* ------------------------------------------------ 星軍基地の正式オープンの告知 */
+  // 日本時間で、オープン（2026-11-14 6:00）より前は before、その日のうちは day、翌日からは after。
+  // data-phase に書いた時期（空白区切り）だけ表示する。日時は hiroba.js の CONFIG.openAt、functions/index.js の OPEN_AT と同じにする
+  var LAUNCH_AT = Date.UTC(2026, 10, 13, 21, 0, 0);
+  var JST = 9 * 60 * 60 * 1000;
+  var launchDay = new Date(LAUNCH_AT + JST);
+  var LAUNCH_DAY_END = Date.UTC(launchDay.getUTCFullYear(), launchDay.getUTCMonth(), launchDay.getUTCDate() + 1) - JST;
+
+  function showLaunchPhase() {
+    var t = Date.now();
+    var phase = t < LAUNCH_AT ? "before" : t < LAUNCH_DAY_END ? "day" : "after";
+    document.querySelectorAll("[data-phase]").forEach(function (el) {
+      el.hidden = el.getAttribute("data-phase").split(" ").indexOf(phase) < 0;
+    });
+  }
+  showLaunchPhase();
+  setInterval(showLaunchPhase, 60 * 1000);
+
   /* ------------------------------------------------ 年表記 */
   var year = document.getElementById("year");
   if (year) year.textContent = String(new Date().getFullYear());

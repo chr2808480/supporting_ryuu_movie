@@ -47,6 +47,12 @@ const RULES = {
   unregisteredRetentionMs: 7 * DAY   // 参加登録を済ませないままのログイン情報（最後に使った日から）
 };
 const TERMS_VERSION = "v1";   // 利用規約を改めたら上げる（v2, v3 …。同意の記録に残る）
+// 参加登録の受付を始める日時（日本時間 2026-11-14 6:00。利用規約 附則）。それより前は運営者のメールアドレスだけ登録できる。
+// hiroba.js の CONFIG.openAt、main.js の LAUNCH_AT と同じ日時にする。エミュレーターでのテストに限り、
+// .env.demo-hiroba の HIROBA_OPEN_AT で差し替えられる（本番では無視する）
+const OPEN_AT = process.env.FUNCTIONS_EMULATOR === "true" && process.env.HIROBA_OPEN_AT
+  ? Date.parse(process.env.HIROBA_OPEN_AT)
+  : Date.UTC(2026, 10, 13, 21, 0, 0);
 const TAGS = ["感想", "おすすめ動画", "質問", "雑談"];
 const REASONS = ["個人情報", "誹謗中傷", "無断転載", "なりすまし", "スパム", "ネタバレ", "その他"];
 const ACTIONS = ["approve", "hide", "restore", "warn", "suspend", "lift", "ban"];
@@ -191,6 +197,9 @@ function requireAdmin(request) {
   if (!request.auth || request.auth.token.admin !== true) throw fail("permission-denied", "運営者のみの操作です。", "not-admin");
   return request.auth.uid;
 }
+// 運営者が書いた投稿・返信には「運営」の印（byAdmin）を付ける。リンクの確認待ちにはせず、運営者の投稿への返信と
+// 運営者の返信は、同じ相手への返信の上限に数えない（利用規約 第5条）
+function isAdmin(request) { return !!request.auth && request.auth.token.admin === true; }
 
 /* ------------------------------------------------------------ 参加登録 */
 
@@ -199,9 +208,12 @@ exports.registerProfile = onCall({ secrets: [HIROBA_SECRET] }, async (request) =
   if (!auth) throw fail("unauthenticated", "ログインしてください。");
   if (!auth.token.email || auth.token.email_verified !== true) throw fail("failed-precondition", "メールのリンクからログインしてください。", "unverified");
   const d = request.data || {};
+  const t = now(request);
+  if (t < OPEN_AT && !adminEmails(ADMIN_EMAILS.value()).includes(auth.token.email.toLowerCase())) {
+    throw fail("failed-precondition", "参加登録は " + jstLabel(OPEN_AT) + " から受け付けます。それまでは読むだけでお楽しみください。", "not-open");
+  }
   if (d.age16 !== true || d.agree !== true) throw fail("failed-precondition", "16歳以上であることと、利用規約・基地のルールへの同意が必要です。", "consent");
   const handle = cleanHandle(d.handle);
-  const t = now(request);
 
   if ((await db.doc("bans/" + emailHash(auth.token.email)).get()).exists) {
     await getAuth().deleteUser(auth.uid);
@@ -241,13 +253,14 @@ exports.createPost = onCall({ secrets: [HIROBA_SECRET] }, async (request) => {
   if (!TAGS.includes(tag)) throw fail("invalid-argument", "話題タグを一つ選んでください。", "tag");
   const body = textField(d.body, RULES.postMax, "投稿の内容");
   checkPII(body, d.piiConfirmed);
-  const state = hasLink(body) ? "held" : "public";
+  const byAdmin = isAdmin(request);
+  const state = hasLink(body) && !byAdmin ? "held" : "public";
 
   const postRef = db.collection("posts").doc();
   await db.runTransaction(async (tx) => {
     assertInterval((await tx.get(ref)).data(), t);
     tx.set(postRef, {
-      authorUid: uid, authorHandle: user.handle, tag, body, spoiler: d.spoiler === true,
+      authorUid: uid, authorHandle: user.handle, byAdmin, tag, body, spoiler: d.spoiler === true,
       state, createdAt: ts(t), editedAt: null
     });
     tx.set(db.doc("postStats/" + postRef.id), { authorUid: uid, stars: 0 });
@@ -267,7 +280,8 @@ exports.createReply = onCall({ secrets: [HIROBA_SECRET] }, async (request) => {
   const postId = docId(d.postId);
   const body = textField(d.body, RULES.replyMax, "返信の内容");
   checkPII(body, d.piiConfirmed);
-  const state = hasLink(body) ? "held" : "public";
+  const byAdmin = isAdmin(request);
+  const state = hasLink(body) && !byAdmin ? "held" : "public";
 
   const postRef = db.doc("posts/" + postId);
   const replyRef = postRef.collection("replies").doc();
@@ -284,14 +298,15 @@ exports.createReply = onCall({ secrets: [HIROBA_SECRET] }, async (request) => {
       const prefs = await tx.get(db.doc("users/" + post.authorUid + "/private/prefs"));
       const blocked = (prefs.exists && prefs.data().blocked) || [];
       if (blocked.some((b) => b.uid === uid)) throw fail("permission-denied", "この投稿には返信できません。", "blocked");
-      if (entries.filter((e) => e.to === post.authorUid).length >= RULES.replyLimit) {
+      const limited = !byAdmin && post.byAdmin !== true;
+      if (limited && entries.filter((e) => e.to === post.authorUid).length >= RULES.replyLimit) {
         throw fail("resource-exhausted", post.authorHandle + " さんとのやりとりが " + RULES.replyLimit + " 回に達しました。24時間たつと、また返信できます。", "reply-limit");
       }
     }
     assertInterval(meSnap.data(), t);
 
     tx.set(replyRef, {
-      postId, authorUid: uid, authorHandle: user.handle, toUid: post.authorUid, toHandle: post.authorHandle,
+      postId, authorUid: uid, authorHandle: user.handle, byAdmin, toUid: post.authorUid, toHandle: post.authorHandle,
       body, state, createdAt: ts(t)
     });
     if (!toSelf) tx.set(logRef, { entries: entries.concat([{ to: post.authorUid, at: t }]) });
@@ -317,8 +332,8 @@ exports.editPost = onCall({ secrets: [HIROBA_SECRET] }, async (request) => {
     if (!snap.exists || snap.data().authorUid !== uid) throw fail("not-found", "編集できる投稿が見つかりません。", "no-post");
     const post = snap.data();
     if (post.state === "hidden") throw fail("failed-precondition", "非表示になった投稿は編集できません。", "hidden");
-    // リンクを足したら、公開中でも運営の確認待ちに戻す
-    state = post.state === "held" || hasLink(body) ? "held" : "public";
+    // リンクを足したら、公開中でも運営の確認待ちに戻す（運営者の投稿は戻さない）
+    state = !isAdmin(request) && (post.state === "held" || hasLink(body)) ? "held" : "public";
     tx.update(postRef, { body, state, editedAt: ts(t) });
     tx.set(db.collection("ipLogs").doc(), ipLog(request, uid, "edit", postRef.path, t));
   });

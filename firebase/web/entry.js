@@ -8,6 +8,6 @@ export {
 } from "firebase/auth";
 export {
   getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc,
-  collection, collectionGroup, query, where, orderBy, limit, getDocs
+  collection, collectionGroup, query, where, orderBy, limit, startAfter, getDocs
 } from "firebase/firestore/lite";
 export { getFunctions, connectFunctionsEmulator, httpsCallable } from "firebase/functions";
