@@ -72,9 +72,11 @@
     });
   });
 
-  /* ------------------------------------------------ 星軍基地の正式オープンの告知 */
-  // 日本時間で、オープン（2026-11-14 6:00）より前は before、その日のうちは day、翌日からは after。
-  // data-phase に書いた時期（空白区切り）だけ表示する。日時は hiroba.js の CONFIG.openAt、functions/index.js の OPEN_AT と同じにする
+  /* ------------------------------------------------ 星軍基地の参加登録の受付開始と、正式オープンの告知 */
+  // 日本時間で、参加登録の受付開始（2026-10-23 6:00）より前は soon、正式オープン（2026-11-14 6:00）より前は before、
+  // その日のうちは day、翌日からは after。data-phase に書いた時期（空白区切り）だけ表示する。
+  // OPEN_AT は hiroba.js の CONFIG.openAt、functions/index.js の OPEN_AT と同じ日時にする
+  var OPEN_AT = Date.UTC(2026, 9, 22, 21, 0, 0);
   var LAUNCH_AT = Date.UTC(2026, 10, 13, 21, 0, 0);
   var JST = 9 * 60 * 60 * 1000;
   var launchDay = new Date(LAUNCH_AT + JST);
@@ -82,7 +84,7 @@
 
   function showLaunchPhase() {
     var t = Date.now();
-    var phase = t < LAUNCH_AT ? "before" : t < LAUNCH_DAY_END ? "day" : "after";
+    var phase = t < OPEN_AT ? "soon" : t < LAUNCH_AT ? "before" : t < LAUNCH_DAY_END ? "day" : "after";
     document.querySelectorAll("[data-phase]").forEach(function (el) {
       el.hidden = el.getAttribute("data-phase").split(" ").indexOf(phase) < 0;
     });

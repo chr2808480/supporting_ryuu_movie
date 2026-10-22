@@ -47,12 +47,12 @@ const RULES = {
   unregisteredRetentionMs: 7 * DAY   // 参加登録を済ませないままのログイン情報（最後に使った日から）
 };
 const TERMS_VERSION = "v1";   // 利用規約を改めたら上げる（v2, v3 …。同意の記録に残る）
-// 参加登録の受付を始める日時（日本時間 2026-11-14 6:00。利用規約 附則）。それより前は運営者のメールアドレスだけ登録できる。
-// hiroba.js の CONFIG.openAt、main.js の LAUNCH_AT と同じ日時にする。エミュレーターでのテストに限り、
+// 参加登録の受付を始める日時（日本時間 2026-10-23 6:00。利用規約 附則）。それより前は運営者のメールアドレスだけ登録できる。
+// hiroba.js の CONFIG.openAt、main.js の OPEN_AT と同じ日時にする。エミュレーターでのテストに限り、
 // .env.demo-hiroba の HIROBA_OPEN_AT で差し替えられる（本番では無視する）
 const OPEN_AT = process.env.FUNCTIONS_EMULATOR === "true" && process.env.HIROBA_OPEN_AT
   ? Date.parse(process.env.HIROBA_OPEN_AT)
-  : Date.UTC(2026, 10, 13, 21, 0, 0);
+  : Date.UTC(2026, 9, 22, 21, 0, 0);
 const TAGS = ["感想", "おすすめ動画", "質問", "雑談"];
 const REASONS = ["個人情報", "誹謗中傷", "無断転載", "なりすまし", "スパム", "ネタバレ", "その他"];
 const ACTIONS = ["approve", "hide", "restore", "warn", "suspend", "lift", "ban"];

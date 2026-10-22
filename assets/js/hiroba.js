@@ -13,9 +13,9 @@
     closedUntil: 6,                      // 新規投稿を再開する時刻（日本時間）
     replyLimit: 3,                       // 同じ相手とのやりとりの上限
     replyWindowMs: 24 * 60 * 60 * 1000,  // 上限を数える期間
-    // 参加登録の受付開始（日本時間 2026-11-14 6:00）。functions/index.js の OPEN_AT、main.js の LAUNCH_AT と同じにする。
+    // 参加登録の受付開始（日本時間 2026-10-23 6:00）。functions/index.js の OPEN_AT、main.js の OPEN_AT と同じにする。
     // テストでは hiroba-config.js の openAt で差し替える
-    openAt: Date.UTC(2026, 10, 13, 21, 0, 0)
+    openAt: Date.UTC(2026, 9, 22, 21, 0, 0)
   };
 
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;

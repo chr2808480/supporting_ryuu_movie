@@ -71,11 +71,14 @@
         合言葉は <button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button>
       </p>
 
-      <!-- 星軍基地の正式オープンの告知。main.js が日本時間で「前日まで（before）/ 当日（day）/ 翌日から（after）」を切り替え、
-           data-phase に書いた時期だけ表示する。JavaScript が動かないときは「前日まで」の文が出る -->
-      <aside class="launch" data-phase="before day" aria-labelledby="launch-title">
-        <p class="launch-date" id="launch-title"><span>2026.11.14</span> SAT 6:00 <strong>星軍基地 OPEN</strong></p>
-        <p class="launch-text" data-phase="before">RyuU さんの活動開始から、ちょうど3年の日。ファンの交流スペース「星軍基地」が正式オープンします。</p>
+      <!-- 星軍基地の正式オープンの告知。main.js が日本時間で「参加登録の受付前（soon）/ 先行オープン中（before）/
+           正式オープンの当日（day）/ 翌日から（after）」を切り替え、data-phase に書いた時期だけ表示する。
+           JavaScript が動かないときは、hidden の付いていない文（受付前の文）が出る -->
+      <aside class="launch" data-phase="soon before day" aria-labelledby="launch-title">
+        <p class="launch-date" id="launch-title"><span>2026.11.14</span> SAT 6:00 <strong>星軍基地 正式オープン</strong></p>
+        <p class="launch-text" data-phase="soon before">RyuU さんの活動開始から、ちょうど3年の日。ファンの交流スペース「星軍基地」が正式オープンします。</p>
+        <p class="launch-text" data-phase="soon">参加登録は、ひと足先に 10月23日（金）6:00 から受け付けます。</p>
+        <p class="launch-text" data-phase="before" hidden>参加登録は、ひと足先に受け付けています。</p>
         <p class="launch-text" data-phase="day" hidden>本日、ファンの交流スペース「星軍基地」が正式オープン！ RyuU さん、活動3周年おめでとうございます。</p>
         <p class="launch-note">ファン有志による非公式の企画です。ご本人・公式の企画ではありません。</p>
         <p class="launch-links">
@@ -206,8 +209,8 @@
       <!-- ===== 星軍基地（準備中）の案内 ===== -->
       <div class="hiroba-intro" id="hiroba">
         <div class="hiroba-intro-text">
-          <h3 class="mini-title">　星軍基地 <span class="hiroba-badge" data-phase="before">11.14 オープン</span><span class="hiroba-badge" data-phase="day after" hidden>オープン中</span></h3>
-          <p><span data-phase="before">配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースを準備しています。</span><span data-phase="day after" hidden>配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースです。</span><button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button> の代わりではなく、補う場所です。</p>
+          <h3 class="mini-title">　星軍基地 <span class="hiroba-badge" data-phase="soon">10.23 受付開始</span><span class="hiroba-badge" data-phase="before" hidden>先行オープン中</span><span class="hiroba-badge" data-phase="day after" hidden>オープン中</span></h3>
+          <p><span data-phase="soon">配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースを準備しています。</span><span data-phase="before day after" hidden>配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースです。</span><button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button> の代わりではなく、補う場所です。</p>
           <ul class="hiroba-points">
             <li>表示名だけで参加。メールアドレスなどは他の人に見えません</li>
             <li>ネタバレの折りたたみ、ミュート、通報つき</li>
@@ -216,7 +219,8 @@
         </div>
         <div class="hiroba-intro-cta">
           <a class="btn btn-ghost" href="hiroba.html">基地をのぞく</a>
-          <span class="note-inline" data-phase="before">いまは正式公開前の試験運用中です。投稿は実際に保存され、誰でも見られます。参加登録は 11月14日（土）6:00 から受け付けます。</span>
+          <span class="note-inline" data-phase="soon">いまは試験運用中です。投稿は実際に保存され、誰でも見られます。参加登録は 10月23日（金）6:00 から受け付けます。</span>
+          <span class="note-inline" data-phase="before" hidden>参加登録を受け付けています（無料）。読むだけなら登録はいりません。11月14日（土）に正式オープンします。</span>
           <span class="note-inline" data-phase="day after" hidden>参加登録は無料です。読むだけなら登録はいりません。</span>
         </div>
       </div>
