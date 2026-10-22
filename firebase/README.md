@@ -158,7 +158,7 @@ Firebase（Google LLC）── Firestore・Functions は東京（asia-northeast1
 | 置き場所 | 中身 |
 | --- | --- |
 | `setup.sh` | 手順7で動かす設定プログラム（Firestore の場所の確認、運営者メールの保存、部品の準備、合言葉の登録、デプロイ） |
-| `functions/index.js` | 投稿・返信・編集・削除・★・通報・退会・運営者の処置と、参加登録のないまま7日たったアカウントの削除（毎日4時）。参加登録の受付開始（`OPEN_AT`。2026-11-14 6:00 より前は運営者のメールアドレスだけ）、受付時間（23時〜6時はお休み）、運営者不在、同じ相手への返信は24時間で3回まで（運営者の投稿への返信と運営者の返信は数えない）、運営者の投稿・返信の「運営」の印（`byAdmin`）、リンクを含む投稿の保留、個人情報らしい文字列の確認、20秒の連投防止、ブロック、投稿停止・利用停止をここで判定する |
+| `functions/index.js` | 投稿・返信・編集・削除・★・通報・退会・運営者の処置と、参加登録のないまま7日たったアカウントの削除（毎日4時）。参加登録の受付開始（`OPEN_AT`。2026-10-23 6:00 より前は運営者のメールアドレスだけ）、受付時間（23時〜6時はお休み）、運営者不在、同じ相手への返信は24時間で3回まで（運営者の投稿への返信と運営者の返信は数えない）、運営者の投稿・返信の「運営」の印（`byAdmin`）、リンクを含む投稿の保留、個人情報らしい文字列の確認、20秒の連投防止、ブロック、投稿停止・利用停止をここで判定する |
 | `firestore.rules` | 読み書きの決まり。書き込みは Functions だけ（例外はミュート・ブロックの設定）。★の数は投稿した本人だけ、通報は運営者だけ、IP の記録は誰も画面から読めない |
 | `firestore.indexes.json` | 検索用の索引と自動削除（TTL）。IP の記録は90日、対応済みの通報は90日（未対応のままなら通報から180日）、利用停止の記録は1年で消える |
 | `web/entry.js` | ブラウザで使う Firebase の部品。`npm run build:web` で `assets/js/vendor/firebase-hiroba.js` を作る |
@@ -166,7 +166,7 @@ Firebase（Google LLC）── Firestore・Functions は東京（asia-northeast1
 | `test/` | エミュレーター（手元で Firebase を再現するもの）でのテスト |
 
 期間や回数を変えるときは、`functions/index.js` の `RULES` と、`privacy.html`・`terms.html`・`hiroba.html` の記載を一緒に直してください。
-参加登録の受付開始を変えるときは、`functions/index.js` の `OPEN_AT`・`assets/js/hiroba.js` の `CONFIG.openAt`・`assets/js/main.js` の `LAUNCH_AT` を同じ日時にします。テストでは `functions/.env.demo-hiroba` の `HIROBA_OPEN_AT` で過去の日時にしています（本番では使われません）。
+参加登録の受付開始を変えるときは、`functions/index.js` の `OPEN_AT`・`assets/js/hiroba.js` の `CONFIG.openAt`・`assets/js/main.js` の `OPEN_AT` を同じ日時にします（`main.js` の `LAUNCH_AT` は 11/14 の正式オープンの告知だけに使う）。テストでは `functions/.env.demo-hiroba` の `HIROBA_OPEN_AT` で過去の日時にしています（本番では使われません）。
 運営者のメールアドレスは `functions/.env.（プロジェクトID）` に保存されます（`.gitignore` で公開しないようにしてある）。
 
 ### 自分のパソコンで行う場合

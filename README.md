@@ -24,7 +24,7 @@
 
 - RyuU さんの紹介（声真似 / ゲーム配信 / 歌ってみた）とプロフィール早見表
 - はじめての方へ（どこから観るか・観る前に・用語集）
-- 星軍基地の正式オープン（2026-11-14）の告知。日付で自動で切り替わる
+- 星軍基地の参加登録の受付開始（2026-10-23）と正式オープン（2026-11-14）の告知。日付で自動で切り替わる
 - 視聴前の注意（ジョジョ 1〜9 部のネタバレ、並行世界の承太郎という設定）
 - 公式リンク集
 - 活動の歩み（年表）
@@ -48,7 +48,7 @@ python3 -m http.server 8000   # → http://localhost:8000
 index.html              サイト本体
 guide.html              はじめての方へ（どこから観る・観る前に・用語集）
 assets/css/style.css    配色・レイアウト
-assets/js/main.js       メニュー / タグコピー / 星軍基地のオープンの告知の切り替え（LAUNCH_AT）
+assets/js/main.js       メニュー / タグコピー / 星軍基地の告知の切り替え（OPEN_AT・LAUNCH_AT）
 assets/img/ogp.png      共有したときの画像（文字だけのファン自作バナー。本人の画像は使わない）
 hiroba.html             星軍基地（ファン交流スペース）。Firebase を設定するまではデモ・noindex（index.html の入軍案内から案内）
 terms.html              星軍基地の利用規約。参加登録で同意をもらう・noindex
@@ -62,7 +62,7 @@ kanri.html              運営者ページ（確認待ちの公開・通報・�
 emailjs/                お問い合わせメールの見た目（EmailJS のテンプレート本文）。EmailJS のダッシュボードに貼り付けて使う
 firebase/               サーバー側（Cloud Functions・Firestore のルール・テスト）。手順は firebase/README.md
 launch-checklist.md     星軍基地を正式に公開する前の確認リスト（設定・規約・法令・運営体制）
-launch-plan.md          公開日（2026-11-14）からの盛り上げ計画と、これから足すページの案
+launch-plan.md          受付開始（2026-10-23）・正式オープン（2026-11-14）からの盛り上げ計画と、これから足すページの案
 research.md             調査メモ・情報源・確度（更新前に必読）
 operations.md           運営ガイド（非公式サイトとして守ること、更新手順）
 ```
