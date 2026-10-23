@@ -1,7 +1,7 @@
 # 星軍基地を本番で動かす手順
 
 `hiroba.html`（星軍基地）を、本物の投稿ができる状態にするための手順です。
-`assets/js/hiroba-config.js` が `null` のあいだは、これまでどおりデモとして動き、どこにも送信しません。
+接続先は `assets/js/hiroba-config.js` に入っています。
 
 **用意するもの**：パソコンのブラウザ（Chrome など）、Google アカウント、クレジットカード
 **自分のパソコンに入れるものはありません。** 作業はすべてブラウザの中で行います。
@@ -114,8 +114,6 @@ Claude が `hiroba-config.js` に接続設定を入れ、公開の準備をし�
 - [ ] 別のメールアドレスで、参加登録 → 投稿 → ★ → 返信 → 通報 → 退会 を一通り試す
 - [ ] リンクを含む投稿が、kanri.html の「確認待ち」に出ることを確かめる
 
-`hiroba.html` の「デモ」の表示は、本番では自動で隠れます。
-
 ---
 
 ## 料金について
@@ -166,7 +164,7 @@ Firebase（Google LLC）── Firestore・Functions は東京（asia-northeast1
 | `test/` | エミュレーター（手元で Firebase を再現するもの）でのテスト |
 
 期間や回数を変えるときは、`functions/index.js` の `RULES` と、`privacy.html`・`terms.html`・`hiroba.html` の記載を一緒に直してください。
-参加登録の受付開始を変えるときは、`functions/index.js` の `OPEN_AT`・`assets/js/hiroba.js` の `CONFIG.openAt`・`assets/js/main.js` の `OPEN_AT` を同じ日時にします（`main.js` の `LAUNCH_AT` は 11/14 の正式オープンの告知だけに使う）。テストでは `functions/.env.demo-hiroba` の `HIROBA_OPEN_AT` で過去の日時にしています（本番では使われません）。
+参加登録の受付開始を変えるときは、`functions/index.js` の `OPEN_AT`・`assets/js/hiroba.js` の `CONFIG.openAt` を同じ日時にします（11/14 の正式オープンの告知は `assets/js/main.js` の `LAUNCH_AT` で、関数とは関係がない）。テストでは `functions/.env.demo-hiroba` の `HIROBA_OPEN_AT` で過去の日時にしています（本番では使われません）。
 運営者のメールアドレスは `functions/.env.（プロジェクトID）` に保存されます（`.gitignore` で公開しないようにしてある）。
 
 ### 自分のパソコンで行う場合

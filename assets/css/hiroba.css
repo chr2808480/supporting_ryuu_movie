@@ -24,22 +24,6 @@
 .hb-btn { border: 0; cursor: pointer; font-family: inherit; padding: .65rem 1.4rem; }
 .hb-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-/* --------------------------------------------------------- デモ表示 */
-.hb-demo {
-  margin-top: 1.2rem; padding: .8rem 1rem;
-  border: 1px dashed rgba(255,154,163,.55); border-radius: var(--radius);
-  background: rgba(255,154,163,.06);
-  font-size: .8rem; color: var(--ink-mute);
-}
-.hb-demo-text { margin: 0; line-height: 1.75; }
-.hb-demo-text strong {
-  display: inline-block; margin-right: .4rem; padding: 0 .55rem;
-  border-radius: 999px; background: var(--red-soft); color: var(--bg); font-size: .72rem;
-}
-.hb-demo-tools { margin-top: .5rem; }
-.hb-demo-tools summary { cursor: pointer; font-weight: 700; color: var(--red-soft); width: fit-content; }
-.hb-demo-buttons { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
-
 /* --------------------------------------------------------- 入口 */
 .hb-top { padding: clamp(2rem, 6vw, 3.4rem) 0 1.2rem; }
 .hb-title { margin: 0; font-size: clamp(1.8rem, 6.5vw, 2.8rem); font-weight: 800; letter-spacing: .06em; }
@@ -84,10 +68,6 @@
 .hb-news-list { margin: 0; padding: 0; list-style: none; display: grid; gap: .3rem; font-size: .82rem; color: var(--ink-mute); }
 .hb-news-list li { padding-top: .3rem; border-top: 1px dashed var(--line); }
 .hb-news-list li:first-child { padding-top: 0; border-top: 0; }
-.hb-news-tag {
-  display: inline-block; margin-right: .4rem; padding: 0 .5rem;
-  border: 1px solid var(--line); border-radius: 999px; font-size: .68rem; vertical-align: 1px;
-}
 
 /* --------------------------------------------------------- レイアウト */
 .hb-layout {

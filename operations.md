@@ -77,13 +77,15 @@ JST の時刻が 9:00 より前の場合は UTC では前日になるため、�
 
 独自ドメインを使う場合はリポジトリ直下に `CNAME` ファイルを置き、Pages の設定で指定してください。
 
-### 参加登録の受付開始（2026-10-23）と、正式オープンの告知（2026-11-14）
+### 正式オープンの告知（2026-11-14）
 
 `index.html` の告知（`.launch`）と基地の紹介は、`data-phase` に書いた時期だけ表示されます。
-`assets/js/main.js` の `OPEN_AT`（参加登録の受付開始）と `LAUNCH_AT`（正式オープン）を境に、
-受付前（`soon`）・先行オープン中（`before`）・正式オープンの当日（`day`）・翌日から（`after`）が自動で切り替わります。
-参加登録の受付開始を変えるときは、`main.js` の `OPEN_AT`・`assets/js/hiroba.js` の `CONFIG.openAt`・`firebase/functions/index.js` の `OPEN_AT`（変えたらデプロイ）を同じ日時にし、
-`index.html` の日付の文字と、`terms.html`・`privacy.html` の制定日・附則も直してください。正式オープンの日を変えるときは `LAUNCH_AT` と `index.html` の日付の文字だけです。
+`assets/js/main.js` の `LAUNCH_AT`（正式オープン）を境に、
+先行オープン中（`before`）・正式オープンの当日（`day`）・翌日から（`after`）が自動で切り替わります。
+正式オープンの日を変えるときは、`LAUNCH_AT` と `index.html` の日付の文字を直してください。
+
+参加登録の受付開始（2026-10-23 6:00。もう始まっています）は、`assets/js/hiroba.js` の `CONFIG.openAt` と `firebase/functions/index.js` の `OPEN_AT` にあります。
+変えるときは両方を同じ日時にして関数をデプロイし、`terms.html`・`privacy.html` の制定日・附則も直してください。
 
 ### 共有したときの画像（OGP）
 
