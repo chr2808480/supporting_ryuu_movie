@@ -48,7 +48,7 @@ const RULES = {
 };
 const TERMS_VERSION = "v1";   // 利用規約を改めたら上げる（v2, v3 …。同意の記録に残る）
 // 参加登録の受付を始める日時（日本時間 2026-10-23 6:00。利用規約 附則）。それより前は運営者のメールアドレスだけ登録できる。
-// hiroba.js の CONFIG.openAt、main.js の OPEN_AT と同じ日時にする。エミュレーターでのテストに限り、
+// hiroba.js の CONFIG.openAt と同じ日時にする。エミュレーターでのテストに限り、
 // .env.demo-hiroba の HIROBA_OPEN_AT で差し替えられる（本番では無視する）
 const OPEN_AT = process.env.FUNCTIONS_EMULATOR === "true" && process.env.HIROBA_OPEN_AT
   ? Date.parse(process.env.HIROBA_OPEN_AT)

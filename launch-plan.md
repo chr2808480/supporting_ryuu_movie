@@ -25,7 +25,7 @@
 
 | 済んだ作業 | どこ |
 | --- | --- |
-| 11.14 正式オープンの告知（受付前・先行オープン中・当日・翌日からで自動で切り替わる） | `index.html` の `.launch`、`assets/js/main.js` の `OPEN_AT`・`LAUNCH_AT` |
+| 11.14 正式オープンの告知（先行オープン中・当日・翌日からで自動で切り替わる。受付前の文は受付開始の後に外した） | `index.html` の `.launch`、`assets/js/main.js` の `LAUNCH_AT` |
 | 「はじめての方へ」（どこから観る・観る前に・用語集） | `guide.html`（トップのメニュー・ボタン・入軍案内・FAQ から案内） |
 | 共有したときの画像と、X で知らせる・書くリンク | `assets/img/ogp.png`、`index.html`・`guide.html` の OGP、入軍案内の4と告知欄のリンク |
 | 基地は100件ずつ読み、「前の投稿をもっと見る」で続きを読む（2-1） | `assets/js/hiroba-firebase.js` |
