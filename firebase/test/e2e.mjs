@@ -84,9 +84,8 @@ try {
   const b = await (await browser.newContext()).newPage();
   for (const p of [a, b]) p.on("pageerror", (e) => errors.push(e.message));
 
-  // 1. 参加登録（メールのリンク → 表示名の登録）と、デモ表示が消えていること
+  // 1. 参加登録（メールのリンク → 表示名の登録）
   await join(a, "a@example.com", "流れ星");
-  assert.equal(await a.isVisible(".hb-demo"), false);
 
   // 2. 投稿：個人情報らしい文字列の確認 → このまま投稿
   await a.check('input[name="tag"][value="感想"]');
