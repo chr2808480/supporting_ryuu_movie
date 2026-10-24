@@ -93,6 +93,7 @@
 .hb-join { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; }
 .hb-join-text { margin: 0; font-size: .88rem; color: var(--ink-mute); flex: 1 1 16rem; }
 .hb-join-soon { margin: 0; font-size: .9rem; font-weight: 700; color: var(--ink); flex: 1 1 16rem; }
+.hb-join-sent { margin: 0; font-size: .88rem; color: var(--ink); flex: 1 1 100%; }
 
 /* --------------------------------------------------------- 投稿フォーム */
 .hb-form { display: grid; gap: .8rem; }

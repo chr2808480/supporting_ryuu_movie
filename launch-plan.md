@@ -3,6 +3,7 @@
 作成日：**2026-10-17**（main の `d1c7edb` 時点のファイルを読んで作成）
 更新：**2026-10-17**（運営者の決定を受けて、公開前にできる作業を済ませました。「決まったこと・済んだこと」を見てください）
 更新：**2026-10-22**（運営者の希望で、参加登録の受付を **10月23日（金）6:00** に前倒ししました。11月14日 は正式オープン・活動3周年の日として残します）
+更新：**2026-10-24**（受付開始から1日たっても参加登録が0人なので、登録が通るかの確かめ方と、宣伝の打ち手を「7.」に足しました）
 
 星軍基地の正式公開を、初日から人が集まり、そのあとも続く形で始めるための計画と、これから足すページの案です。
 公開前の設定・法令の確認は [`launch-checklist.md`](launch-checklist.md) にあります。こちらは「人が来て、また来たくなる」ための計画です。
@@ -128,6 +129,7 @@ RyuU さんが当日に3周年の配信をするかは、1週間前に X で確�
 ### 受付開始（10/23）から、正式オープンの2週間後まで
 
 - [ ] 毎日1回 `kanri.html`（通報・確認待ち）を見る。見られない日は「運営者不在」をオンにする
+- [ ] 参加登録が通るかを確かめる（7-1。**10/30 ごろまでに**）
 - [ ] 初めての投稿への返事を続ける
 - [ ] 2回目の土曜（11/21）も同じ流れにして、毎週の型にする
 
@@ -203,6 +205,45 @@ RyuU さんに触れてもらったり、投稿が広まったりすると、一
 
 ---
 
+## 7. 受付開始のあと、参加登録が0人のとき（2026-10-24）
+
+10/24 の時点で、参加登録は0人です。宣伝を足す前に、まず登録が通るかを確かめます。
+論文と公式の資料は、この作業環境からは本文を開けなかったため、Web 検索で得た要旨と紹介から整理しました（冒頭の注意と同じ制約です）。
+
+### 7-1. まず、登録が通るか確かめる
+
+| # | 確かめること | どこで | なぜ |
+| --- | --- | --- | --- |
+| 1 | 関数の最終デプロイが **2026-10-22 22:15（日本時間）より後** か | Google Cloud コンソール →「Cloud Run」 | 10/17 版の関数は、受付開始が **11/14 6:00** です。10/23 6:00 にした版が main に入ったのは 10/22 22:15 です。その間にデプロイしたままだと、画面には「基地に参加する」が出るのに、メールのリンクを開いたあとで「参加登録は 11月14日（土）6:00 から受け付けます」と断られます。前なら `launch-checklist.md` 1-11 のとおりデプロイし直す |
+| 2 | 運営者**でない**アドレスで、シークレットウィンドウから最後まで登録できるか | `hiroba.html` | 運営者のアドレスは受付前でも登録できるので、運営者で試しても 1 に気づけません。試したら退会する |
+| 3 | 「Authentication」にいる人が、Firestore の `users` にいないことはないか | Firebase コンソール | いれば、メールのリンクを開いたあとで止まっています（1 のほか、表示名が使えなかったなど）。登録しないままのログインは7日で自動で消える（`cleanupUnregistered`）ので、**10/30 ごろまでに**見る |
+| 4 | ログイン用のメールが迷惑メールに入らないか | Gmail・iCloud・キャリアメールなど（`launch-checklist.md` 3.） | ✅ **2026-10-24 済み**：リンクを送ったあと、基地の参加の案内に「数分たっても届かないときは、迷惑メールのフォルダも見てください」を残すようにした（知らせはすぐ消えるため）。Firebase の標準のメールは Google から送られ、変えられる所が少ない |
+
+### 7-2. いまの数字の見方
+
+- 受付開始から約1日で、入口は本部トップと検索だけです。X のアカウントは作らない決定（6. の1）なので、ほかに知らせる経路がまだありません
+- Google は、新しいページが検索に載るまで数日〜数週間かかるとしています
+- 来た人の大半は読むだけです（1. の8）。小さいままの場にも、参加する人にとっての価値があります（Hwang & Foote 2021。Reddit の小さいコミュニティの聞き取り）。0人は、まだ失敗の判定にはなりません。成否は1か月後の振り返り（3.）で見ます
+
+### 7-3. 宣伝の打ち手（効く順）
+
+| # | 打ち手 | 根拠 | 気をつけること |
+| --- | --- | --- | --- |
+| 1 | **知り合いのファンに、1人ずつ声をかける。** お互いに知り合いの3〜5人に、同じころに「一緒に入らない？」と誘う | Kraut ほか 2012（新しい人の章の設計原則2：口コミは、人を介さない広告よりずっと強い。研究をまとめた分析では約10倍〔二次情報〕）。Trusov ほか 2009（SNS の新規登録で、会員からの紹介は広告より長く効き、効き目も大きい）。Backstrom ほか 2006（加わる見込みは、中にいる友だちの数で上がり〔増え方はだんだん小さくなる。二次情報〕、その友だち同士のつながり方にもよる）。Centola 2010（健康のフォーラムへの登録の実験。複数の知り合いから後押しされた人ほど登録した） | 本人のアカウントで、本人の言葉で書いてもらう（2-8 のさくらにしない）。知らない人への一斉の DM はしない（X の規約では、大量で強引なふるまいはスパム） |
+| 2 | **`#ryuu星軍` でよく描く・書くファンを、個別に誘う** | Zhu・Kraut・Kittur 2014（Wikia の 5,673 のコミュニティ。ほかの成熟したコミュニティで中心にいる人が一緒に参加している新しいコミュニティほど続く） | 宣伝のお願いではなく、参加のお誘いとして。断られたら重ねて誘わない |
+| 3 | **運営者の個人の X で、自分の言葉で1回だけ紹介する** | ファンが集まっているのは X です（`research.md`：告知の本命の導線） | 個人のアカウントがあり、運営者だと知られてもよい場合だけ。サイト用のアカウントは作らない（6. の1）。`#ryuu星軍` は付けない（3. の1週間前〜前日） |
+| 4 | **Google Search Console で `sitemap.xml` を送り、トップと `guide.html` の「インデックス登録をリクエスト」を押す** | Google（sitemap は、公開したばかりのサイトに特に役立つ。同じ URL を何度リクエストしても早くはならない） | ✅ **2026-10-24 済み**：`sitemap.xml` の更新日を、ページを最後に変えた日に合わせた（トップ 10/23、お問い合わせ 10/12）。ページを変えたら、ここも直す |
+| 5 | **11/14（3周年）に、3 の紹介と、1 で誘った人の発信を合わせる** | その日はファンの投稿が増えると見込んでいます（推測） | 公式の企画と誤解されない書き方にする（5. の A1） |
+| 6 | **来た人が空っぽの基地を見ないようにする** | Resnick・Kraut（中身がたまっていることが新しい人を呼ぶ）、1. の1 | 運営者の最初の投稿（`launch-checklist.md` 8. の6）が済んでいるか確かめる |
+
+### 7-4. やらないこと
+
+- RyuU さんの動画のコメント欄や配信のチャットに、このサイトの URL を貼る。YouTube の規約は、閲覧者を誤ってサイトの外へ誘導するコメントと、同じコメントや相手を選ばないコメントの大量の投稿を禁じています。軍の作法の「宣伝行為」にも当たります
+- 知らない人への X の一斉の返信・DM（X の Platform manipulation and spam policy）
+- `#ryuu星軍` での宣伝、マシュマロの送り直し（催促になる。軍の作法）、さくらの投稿（2-8）
+
+---
+
 ## 情報源
 
 ### RyuU さん（公式の導線。確度は検索結果の要約によるもの）
@@ -226,6 +267,21 @@ RyuU さんに触れてもらったり、投稿が広まったりすると、一
 - Justin Cheng, Michael Bernstein, Cristian Danescu-Niculescu-Mizil, Jure Leskovec. [Anyone Can Become a Troll: Causes of Trolling Behavior in Online Discussions](https://cs.stanford.edu/~jure/pubs/trolling-cscw17.pdf). CSCW 2017: 1217–1230.
 - Robert E. Kraut, Andrew T. Fiore. [The Role of Founders in Building Online Groups](https://www.researchgate.net/publication/262153576_The_role_of_founders_in_building_online_groups). CSCW 2014: 722–732.（結果は [arXiv:2405.00601](https://arxiv.org/abs/2405.00601) での紹介による）
 - William A. Hamilton, Oliver Garretson, Andruid Kerne. Streaming on Twitch: Fostering Participatory Communities of Play within Live Mixed Media. CHI 2014: 1315–1324. doi:10.1145/2556288.2557048
+- 🆕（7.）Robert E. Kraut, Moira Burke, John Riedl, Paul Resnick. [Dealing with Newcomers](https://kraut.hciresearch.info/wp-content/uploads/2020/02/kraut10-Newcomers-current.pdf). Kraut & Resnick 2012 の第5章（著者のサイトの原稿）。設計原則2「口コミは、人を介さない広告よりずっと強い」
+- 🆕（7.）Paul Resnick, Robert E. Kraut. [Evidence-based social design: Introduction](https://collablab.northwestern.edu/CollabolabDistro/nucmc/Resnick10-Intro-current.pdf). Kraut & Resnick 2012 の序章（原稿）
+- 🆕（7.）Michael Trusov, Randolph E. Bucklin, Koen Pauwels. [Effects of Word-of-Mouth Versus Traditional Marketing: Findings from an Internet Social Networking Site](https://eresearch.ozyegin.edu.tr/handle/10679/56). Journal of Marketing 73(5): 90–102, 2009. doi:10.1509/jmkg.73.5.90
+- 🆕（7.）Lars Backstrom, Dan Huttenlocher, Jon Kleinberg, Xiangyang Lan. [Group Formation in Large Social Networks: Membership, Growth, and Evolution](https://www.cs.cornell.edu/courses/cs789/2006fa/LarsBackstrom9.06.htm). KDD 2006: 44–54. doi:10.1145/1150402.1150412（増え方がだんだん小さくなる点は [Science News の紹介](https://new.sciencenews.org/article/mining-yesternet) による）
+- 🆕（7.）Damon Centola. [The Spread of Behavior in an Online Social Network Experiment](https://pubmed.ncbi.nlm.nih.gov/20813952). Science 329(5996): 1194–1197, 2010. doi:10.1126/science.1185231
+- 🆕（7.）Haiyi Zhu, Robert E. Kraut, Aniket Kittur. [The Impact of Membership Overlap on the Survival of Online Communities](https://experts.umn.edu/en/publications/the-impact-of-membership-overlap-on-the-survival-of-online-commun/). CHI 2014: 281–290. doi:10.1145/2556288.2557213
+- 🆕（7.）Sohyeon Hwang, Jeremy Foote. [Why do people participate in small online communities?](https://arxiv.org/abs/2108.04282) Proc. ACM HCI 5(CSCW2): 462, 2021. doi:10.1145/3479606
+
+### Google・YouTube・X（公式。7.）
+
+- [Google 検索セントラル「Google に再クロールを依頼する」](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl?hl=ja)（URL 検査と sitemap。クロールには数日〜数週間かかる。同じ URL を何度リクエストしても早くならない）
+- [Google 検索セントラル「Search Console スタートガイド」](https://developers.google.com/search/docs/beginner/search-console)（sitemap を送ると、見つけてもらうのが早くなることがある）
+- [Firebase: Generating Email Action Links](https://firebase.google.com/docs/auth/admin/email-action-links)（標準のメールは Google から送られ、変えられる所が少ない）
+- [YouTube「スパム、欺瞞行為、詐欺に関するポリシー」](https://support.google.com/youtube/answer/2801973)（閲覧者を誤って YouTube の外へ誘導するコメント、同じコメントや相手を選ばないコメントの大量の投稿）
+- [X「Platform manipulation and spam policy」](https://help.x.com/rules-and-policies/platform-manipulation)（大量・強引・欺く形で、ほかの人の体験を乱すふるまい）
 
 ### X・Firebase（公式）
 

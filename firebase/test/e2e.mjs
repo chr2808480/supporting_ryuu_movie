@@ -63,6 +63,7 @@ async function join(page, email, handle) {
   await page.fill("#join-name", handle);
   await page.click('#join-form button[type="submit"]');
   await page.waitForFunction(() => !document.getElementById("dlg-join").open);
+  await page.waitForSelector("#hb-join-sent:not([hidden])");   // 届かないときの案内が残る
   await page.goto(await linkFor(email));
   await page.waitForSelector("#hb-form:not([hidden])");
   assert.equal(await page.textContent("#hb-me-name"), handle);
