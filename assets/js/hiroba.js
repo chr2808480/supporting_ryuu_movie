@@ -159,6 +159,7 @@
   var joinText = $(".hb-join-text", joinBox);
   var joinButton = $("[data-open]", joinBox);
   var joinSoon = $("#hb-join-soon");
+  var joinSent = $("#hb-join-sent");
   var form = $("#hb-form");
   var fields = $("#hb-fields");
   var closedEl = $("#hb-closed");
@@ -570,6 +571,7 @@
       ? live.register(handle).then(reload).then(function () { closeDialog(joinDlg); toast("参加登録が済みました。ようこそ ★"); })
       : live.sendLink(email.value.trim(), handle).then(function () {
           closeDialog(joinDlg);
+          joinSent.hidden = false;
           toast("ログイン用のリンクを送りました。メールを開いてください");
         });
     job.catch(function (err) { joinMsg.textContent = err.message; })
