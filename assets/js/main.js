@@ -90,6 +90,45 @@
   showLaunchPhase();
   setInterval(showLaunchPhase, 60 * 1000);
 
+  /* ------------------------------------------------ 来訪者カウンター（トップページ） */
+  // countVisitor（firebase/functions/index.js）に1つ数えてもらい、「あなたは○人目の来訪者です」を出す。
+  // 同じタブで開き直したときは、前の番号を出して数え直さない。数えられなかったときは何も出さない
+  var visitor = document.getElementById("visitor");
+  var hb = window.HB_FIREBASE;
+  var VISITOR_KEY = "ryuu.visitorNo";
+
+  function showVisitor(n) {
+    var padded = String(n);
+    while (padded.length < 6) padded = "0" + padded;
+    visitor.querySelector(".visitor-num").textContent = padded;
+    visitor.querySelector(".sr-only").textContent = String(n);
+    visitor.hidden = false;
+  }
+
+  if (visitor && hb && hb.config && window.fetch) {
+    var savedNo = 0;
+    try { savedNo = Number(sessionStorage.getItem(VISITOR_KEY)) || 0; } catch (e) { /* 保存できない環境では毎回数える */ }
+
+    if (savedNo > 0) {
+      showVisitor(savedNo);
+    } else {
+      var region = hb.region || "asia-northeast1";
+      var countUrl = hb.useEmulators
+        ? "http://127.0.0.1:5001/" + hb.config.projectId + "/" + region + "/countVisitor"
+        : "https://" + region + "-" + hb.config.projectId + ".cloudfunctions.net/countVisitor";
+      // Firebase の部品は読み込まず、呼び出し用の決まった形（{ data } を送り { result } を受け取る）で直接呼ぶ
+      fetch(countUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: {} }) })
+        .then(function (res) { return res.json(); })
+        .then(function (json) {
+          var n = json && json.result && json.result.n;
+          if (typeof n !== "number" || n < 1) return;
+          try { sessionStorage.setItem(VISITOR_KEY, String(n)); } catch (e) { /* 次に開いたときにまた数える */ }
+          showVisitor(n);
+        })
+        .catch(function () { /* 出さないだけ */ });
+    }
+  }
+
   /* ------------------------------------------------ 年表記 */
   var year = document.getElementById("year");
   if (year) year.textContent = String(new Date().getFullYear());

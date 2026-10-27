@@ -254,6 +254,15 @@ code {
 .launch-links { margin: .7rem 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.2rem; font-size: .84rem; }
 .launch-links a { color: var(--red-soft); }
 
+/* 来訪者カウンター（main.js が番号を入れて出す）。番号が届く前から1行ぶんの高さをとって、下がずれないようにする */
+.visitor { margin: 1.8rem 0 0; min-height: 2em; font-size: .76rem; color: var(--ink-mute); letter-spacing: .08em; }
+.visitor-num {
+  display: inline-block; margin: 0 .4em; padding: 0 .5em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.1em; letter-spacing: .18em; color: var(--red-soft);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+}
+
 .btn {
   display: inline-block; padding: .85rem 1.7rem; border-radius: 999px;
   font-weight: 700; font-size: .9rem; text-decoration: none;

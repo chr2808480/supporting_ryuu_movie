@@ -89,6 +89,8 @@ service cloud.firestore {
     }
 
     // 投稿時の IP と日時（暗号化済み）・表示名の予約・利用停止の照合用ハッシュは、画面からは誰も読めない
+    // 来訪者の数は countVisitor が返すので、画面からは読み書きしない
+    match /stats/{id} { allow read, write: if false; }
     match /ipLogs/{id} { allow read, write: if false; }
     match /handles/{key} { allow read, write: if false; }
     match /bans/{key} { allow read, write: if false; }

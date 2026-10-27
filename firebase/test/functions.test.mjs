@@ -300,6 +300,14 @@ function scheduled(name) {
   return (daysLater) => fns[name].run({ scheduleTime: new Date(Date.now() + daysLater * 24 * HOUR).toISOString() });
 }
 
+test("来訪者カウンター：ログインなしで呼べて、同時に来ても番号が重ならない。数だけを残す", async () => {
+  assert.equal((await call("countVisitor")).n, 1);
+  assert.equal((await call("countVisitor")).n, 2);
+  const many = await Promise.all([1, 2, 3, 4, 5].map(() => call("countVisitor")));
+  assert.deepEqual(many.map((r) => r.n).sort((x, y) => x - y), [3, 4, 5, 6, 7]);
+  assert.deepEqual((await db.doc("stats/visitors").get()).data(), { count: 7 });
+});
+
 test("定期処理：参加登録のないまま7日たったアカウントを消す（運営者は消さない）", async () => {
   const cleanup = scheduled("cleanupUnregistered");
   const a = await member("a@example.com", "流れ星");                    // 参加登録済み

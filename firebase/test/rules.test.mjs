@@ -62,6 +62,9 @@ test("投稿・返信・設定を、画面から直接書き換えることは�
   await assertFails(setDoc(doc(as("bob"), "posts/pub/replies/r3"), { authorUid: "bob", state: "public" }));
   await assertFails(setDoc(doc(as("admin", { admin: true }), "config/site"), { absent: true }));
   await assertFails(setDoc(doc(as("alice"), "users/alice"), { status: "active", violations: 0 }));
+  // 来訪者の数も、関数を通さずに増やしたり書き換えたりできない
+  await assertFails(setDoc(doc(guest(), "stats/visitors"), { count: 999999 }));
+  await assertFails(getDoc(doc(guest(), "stats/visitors")));
 });
 
 test("★を送った記録は本人だけ、★の数は投稿した本人だけが読める", async () => {

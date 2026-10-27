@@ -90,6 +90,10 @@
         <a class="btn btn-primary" href="#profile">公式リンクを見る</a>
         <a class="btn btn-ghost" href="guide.html">はじめての方へ</a>
       </div>
+
+      <!-- 来訪者カウンター。main.js が countVisitor（firebase/functions/index.js）に数えてもらい、番号が届いたら出す。
+           同じタブで開き直したときは数え直さない。数えられなかったとき・JavaScript が動かないときは何も出さない -->
+      <p class="visitor"><span id="visitor" hidden>あなたは<span class="visitor-num" aria-hidden="true"></span><span class="sr-only"></span>人目の来訪者です</span></p>
     </div>
   </section>
   
@@ -317,6 +321,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="assets/js/hiroba-config.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>

@@ -614,6 +614,21 @@ exports.adminSetSite = onCall(async (request) => {
   return { ok: true };
 });
 
+/* ------------------------------------------------------------ 来訪者カウンター */
+
+// トップページの「あなたは○人目の来訪者です」。合計の数だけを持ち、誰が来たかは記録しない（プライバシーポリシー 2.）。
+// 同じタブで開き直したときは main.js が呼ばない。同時に来た人に同じ番号を出さないよう、トランザクションで数える
+exports.countVisitor = onCall(async () => {
+  const ref = db.doc("stats/visitors");
+  const n = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const next = ((snap.exists && snap.data().count) || 0) + 1;
+    tx.set(ref, { count: next });
+    return next;
+  });
+  return { n };
+});
+
 /* ------------------------------------------------------------ 定期処理 */
 
 // メールのリンクでログインしたまま参加登録を済ませず、最後に使ってから7日たったアカウント（メールアドレス）を消す
