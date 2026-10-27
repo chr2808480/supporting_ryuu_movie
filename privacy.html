@@ -45,9 +45,9 @@
   <section class="section hb-section">
     <div class="wrap doc">
       <h1 class="section-title">　プライバシーポリシー</h1>
-      <p class="doc-meta">制定日：2026年10月23日</p>
+      <p class="doc-meta">制定日：2026年10月23日　改定日：2026年10月27日（トップページの来訪者カウンターについて追記）</p>
       <p class="section-lead">
-        ファン交流スペース「星軍基地」と、削除依頼・お問い合わせのフォームで預かる情報と、その扱いです。他の利用者に見えるのは表示名と投稿だけです。運営者に預ける情報も、基地の運営と違反への対応に必要な最小限にします。
+        ファン交流スペース「星軍基地」と、削除依頼・お問い合わせのフォーム、トップページの来訪者カウンターで預かる情報と、その扱いです。他の利用者に見えるのは表示名と投稿だけです。運営者に預ける情報も、基地の運営と違反への対応に必要な最小限にします。
       </p>
 
       <aside class="hb-summary" aria-labelledby="doc-summary-title">
@@ -115,6 +115,8 @@
               <tr><th scope="row">ログイン状態を保つための情報</th><td>あなたのブラウザに保存</td><td>ログインの維持</td><td>ログアウトするまで</td></tr>
               <tr><th scope="row">ログイン用リンクを送ったメールアドレスと、希望した表示名</th><td>あなたのブラウザに一時保存</td><td>リンクを開いたときの本人確認と参加登録</td><td>リンクからログインした時点で削除</td></tr>
               <tr><th scope="row">お問い合わせフォームの内容（お名前・ハンドル名と返信先メールアドレス〔どちらも任意〕、種類、内容）</th><td>運営者のみ</td><td>削除依頼・お問い合わせへの対応と返信</td><td>対応を終えてから1年</td></tr>
+              <tr><th scope="row">来訪者の合計の数（誰が来たかは記録しません）</th><td>誰でも（トップページに「○人目」として表示）</td><td>来訪者カウンターの表示</td><td>カウンターをやめるまで</td></tr>
+              <tr><th scope="row">トップページで表示した「何人目か」の番号</th><td>あなたのブラウザに一時保存</td><td>同じタブで開き直したときに数え直さないため</td><td>タブを閉じるまで</td></tr>
               <tr><th scope="row">アクセス解析・広告のタグ</th><td>星軍基地では使いません</td><td>—</td><td>—</td></tr>
             </tbody>
           </table>
@@ -172,7 +174,7 @@
               <tr><th scope="col">任せること</th><th scope="col">サービス（事業者）</th><th scope="col">預ける情報</th><th scope="col">事業者の国／サーバーの国</th></tr>
             </thead>
             <tbody>
-              <tr><th scope="row">基地のデータの保存と、サーバー側の処理</th><td>Firebase（Google LLC）の Cloud Firestore・Cloud Functions</td><td>表示名、投稿・返信、★・ミュート・ブロック、通報、処置の記録、暗号化した IP アドレスなど</td><td>米国／日本（東京）</td></tr>
+              <tr><th scope="row">基地のデータの保存と、サーバー側の処理</th><td>Firebase（Google LLC）の Cloud Firestore・Cloud Functions</td><td>表示名、投稿・返信、★・ミュート・ブロック、通報、処置の記録、暗号化した IP アドレス、来訪者の合計の数など</td><td>米国／日本（東京）</td></tr>
               <tr><th scope="row">ログインと、ログイン用メールの送信</th><td>Firebase Authentication（Google LLC）</td><td>メールアドレス、ログインの記録（IP アドレスを含む）</td><td>米国／米国</td></tr>
               <tr><th scope="row">運営者のメールの送受信（処置の通知・お問い合わせの受け取りと返信）</th><td>Gmail（Google LLC）</td><td>メールアドレス、通知・お問い合わせの内容</td><td>米国／特定できません（下記）</td></tr>
               <tr><th scope="row">お問い合わせフォームの送信</th><td>EmailJS（EmailJS Pte. Ltd.）</td><td>フォームの入力内容</td><td>シンガポール／米国</td></tr>
@@ -220,6 +222,7 @@
           <li>星軍基地のページは、このサイトの中にあるファイルだけを読み込みます。広告・アクセス解析・SNSのボタンなど、見た人の情報をほかの事業者に送るしくみは使いません。投稿の表示・ログイン・書き込みのために、6. の Firebase（Google）のサーバーとやりとりします。このとき、IP アドレスやブラウザの種類などが Google に送られます。</li>
           <li>ログイン状態を保つため、ブラウザの保存領域（IndexedDB の firebaseLocalStorageDb）に情報を保存します。ログアウトすると削除されます。</li>
           <li>ログイン用リンクを送るとき、メールアドレスと希望した表示名をブラウザ（localStorage の hiroba.pendingSignIn）に一時保存します。リンクからログインした時点で削除します。</li>
+          <li>トップページは、来訪者カウンターの番号を受け取るために、6. の Firebase（Google）のサーバー（Cloud Functions）と1回だけやりとりします。このとき、IP アドレスやブラウザの種類などが Google に送られます。数えるのは合計の数だけで、誰が来たかは記録しません。受け取った番号は、同じタブで開き直したときに数え直さないよう、ブラウザ（sessionStorage の ryuu.visitorNo）に一時保存します。タブを閉じると消えます。</li>
           <li>運営者が Cookie を設定することはありません。</li>
           <li>このサイトは GitHub Pages（GitHub, Inc.・米国）で配信しています。GitHub は、ページを見た人の IP アドレスをセキュリティのために記録しています（<a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages">GitHub Docs「What is GitHub Pages?」</a>）。この記録は GitHub が扱うもので、運営者は受け取りません。</li>
           <li>お問い合わせフォームのページでは、送信のために EmailJS のプログラムを jsDelivr（ファイル配信サービス）から読み込みます。このとき、IPアドレスやブラウザの種類などが jsDelivr に送られます。</li>

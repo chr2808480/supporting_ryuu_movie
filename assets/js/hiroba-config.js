@@ -1,5 +1,5 @@
 /*!
- * 星軍基地の接続先（Firebase）。
+ * 星軍基地の接続先（Firebase）。トップページの来訪者カウンター（main.js）も、ここから呼び先を作る。
  * Firebase コンソール → プロジェクトの設定 → マイアプリ（ウェブ）の firebaseConfig の値です。
  * apiKey などはページに公開して問題ない値です（守りは Firestore のルールと Cloud Functions で行う）。
  * 手順は firebase/README.md を参照。
