@@ -552,13 +552,16 @@ code {
 .footer-copy { margin: 0; font-size: .72rem; color: var(--ink-mute); }
 
 /* --------------------------------------------------------- toast */
+/* 出していないときは画面の下へずらすうえに、透明にしておく。スマホではアドレスバーの出し入れで
+   画面の下端が動くので、下へずらしただけだと赤い楕円が下から覗くことがある */
 .toast {
-  position: fixed; left: 50%; bottom: 2rem; transform: translate(-50%, 140%);
+  position: fixed; left: 50%; bottom: 2rem;
   background: var(--red); color: var(--bg); font-weight: 700; font-size: .85rem;
   padding: .7rem 1.4rem; border-radius: 999px; box-shadow: var(--shadow);
   transform: translate(-50%, calc(100% + 3rem));
+  opacity: 0; pointer-events: none;
 }
-.toast.is-visible { transform: translate(-50%, 0); }
+.toast.is-visible { transform: translate(-50%, 0); opacity: 1; }
 
 /* --------------------------------------------------------- reveal */
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
