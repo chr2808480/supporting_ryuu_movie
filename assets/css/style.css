@@ -85,8 +85,11 @@ code {
 
 /* --------------------------------------------------------- starfield bg */
 /* 土台：明るめの黒 ＋ ほんのり赤い光 ＋ 動かない中くらいの星 */
+/* 高さはツールバーを畳んだときの画面の高さ（100vh）で固定する。inset: 0 だと、スマホでスクロールして
+   アドレスバーが出入りするたびに背景の大きさが変わり、星の層を描き直して、ちらついたり光がずれたりする */
 .starfield {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+  position: fixed; top: 0; left: 0; right: 0; height: 100vh;
+  z-index: -1; pointer-events: none; overflow: hidden;
   background:
     radial-gradient(1.4px 1.4px at 37px 51px,   rgba(247,234,236,.75) 50%, transparent 51%),
     radial-gradient(1.2px 1.2px at 151px 197px, rgba(247,234,236,.65) 50%, transparent 51%),
@@ -99,18 +102,20 @@ code {
   background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
 }
 
-/* 星のレイヤー（共通）：タイルの大きさをずらして規則性を目立たなくする */
+/* 星のレイヤー（共通）：タイルの大きさをずらして規則性を目立たなくする。
+   右下へタイル1枚分だけ流して先頭に戻るので、はみ出させるのは左と上のタイル1枚分だけでよい */
 .starfield::before,
 .starfield::after {
-  content: ""; position: absolute; inset: -420px;
+  content: ""; position: absolute;
+  top: calc(-1 * var(--tile)); left: calc(-1 * var(--tile)); right: 0; bottom: 0;
   background-repeat: repeat;
   background-size: var(--tile) var(--tile);
-  animation: star-drift var(--drift) linear infinite;
 }
 
 /* 小さな星：数が多く、ゆっくり流れる */
 .starfield::before {
-  --tile: 173px; --drift: 220s;
+  --tile: 173px;
+  animation: star-drift-sm 220s linear infinite;
   background-image:
     radial-gradient(1.2px 1.2px at 11px 23px,   rgba(247,234,236,.80) 50%, transparent 51%),
     radial-gradient(1px 1px at 67px 131px,      rgba(247,234,236,.60) 50%, transparent 51%),
@@ -122,7 +127,7 @@ code {
 
 /* 大きめの星：少なめ、またたく */
 .starfield::after {
-  --tile: 419px; --drift: 200s;
+  --tile: 419px;
   background-image:
     radial-gradient(2px 2px at 41px 83px,       var(--ink) 50%, transparent 51%),
     radial-gradient(1.8px 1.8px at 307px 37px,  rgba(255,154,163,.95) 50%, transparent 51%),
@@ -131,16 +136,36 @@ code {
     radial-gradient(2px 2px at 113px 389px,     rgba(255,77,94,.9) 50%, transparent 51%),
     radial-gradient(8px 8px at 197px 263px,     rgba(247,234,236,.22) 25%, transparent 70%); /* 光のにじみ */
   animation:
-    star-drift var(--drift) linear infinite,
+    star-drift-lg 200s linear infinite,
     star-twinkle 3.2s ease-in-out infinite alternate;
 }
 
-@keyframes star-drift {
-  to { transform: translate3d(var(--tile), var(--tile), 0); }
+/* 流す距離はタイルの大きさと同じ。Safari は @keyframes の中の var() を取りこぼすことがあるので、数字で書く */
+@keyframes star-drift-sm {
+  to { transform: translate3d(173px, 173px, 0); }
+}
+@keyframes star-drift-lg {
+  to { transform: translate3d(419px, 419px, 0); }
 }
 @keyframes star-twinkle {
   from { opacity: 1; }
   to   { opacity: .35; }
+}
+
+/* スマホ・タブレットでは星を流さず、画面と同じ大きさの層でまたたかせるだけにする。
+   画面より大きな層を動かし続けると、高解像度の画面では描画が追いつかず、
+   星が欠けたり、ちらついたり、細かく震えて見えたりする */
+@media (hover: none), (max-width: 760px) {
+  .starfield::before,
+  .starfield::after { inset: 0; }
+  .starfield::before { animation: none; }
+  .starfield::after { animation: star-twinkle 3.2s ease-in-out infinite alternate; }
+}
+
+/* 動きを減らす設定の人には、星を止めて表示する（reset / base の全体の指定だけだと、ごく短い周期で回り続ける） */
+@media (prefers-reduced-motion: reduce) {
+  .starfield::before,
+  .starfield::after { animation: none !important; }
 }
 
 /* --------------------------------------------------------- header / nav */
