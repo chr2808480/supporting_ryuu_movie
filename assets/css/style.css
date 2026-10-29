@@ -254,6 +254,36 @@ code {
 .launch-links { margin: .7rem 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.2rem; font-size: .84rem; }
 .launch-links a { color: var(--red-soft); }
 
+/* 正式オープンの当日（day）だけ出すもの：3周年の一行、基地へのボタン。
+   当日はヒーローの上の余白を詰めて、基地へのボタンを最初の画面に入れる（:has が使えないブラウザでは詰めないだけ） */
+.hero:has(.hero-anniv:not([hidden])) { padding-top: clamp(2rem, 6vw, 3.5rem); }
+.hero-anniv {
+  display: inline-block; margin: 0 0 .9rem; padding: .1rem .9rem;
+  border: 1px solid rgba(255,77,94,.55); border-radius: 999px;
+  font-size: .82rem; font-weight: 700; letter-spacing: .14em; color: var(--ink);
+}
+.hero-anniv span { margin-left: .4em; font-size: .9em; font-weight: 400; letter-spacing: .06em; color: var(--ink-mute); }
+.launch-cta { margin: 1rem 0 0; display: grid; justify-items: center; gap: .45rem; }
+.launch-cta-note { margin: 0; font-size: .78rem; color: var(--ink-mute); }
+/* 狭い画面で「ございま／す。」のように1〜2文字だけ落ちないよう、意味のまとまり（span）ごとに改行する */
+.launch-text span, .launch-cta-note span, .base-entry-lead span { display: inline-block; }
+
+/* 正式オープンの翌日（after）からずっと出す、星軍基地の入口。告知があったのと同じ場所に置く。
+   広い画面では「説明｜ボタン」の横並び、狭い画面では縦に積んで中央にそろえる */
+.base-entry {
+  margin: 2rem auto 0; max-width: 40rem; padding: 1rem 1.3rem;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .7rem 1.4rem;
+  background: var(--panel-2); border: 1px solid rgba(255,77,94,.45); border-radius: var(--radius-lg);
+  text-align: left;
+}
+.base-entry-text { flex: 1 1 20rem; }
+.base-entry-title { margin: 0; font-size: 1rem; font-weight: 700; letter-spacing: .12em; color: var(--red-soft); }
+.base-entry-lead { margin: .3rem 0 0; font-size: .86rem; color: var(--ink-mute); }
+.base-entry-links { flex-basis: 100%; margin: 0; }
+@media (max-width: 560px) {
+  .base-entry-text { text-align: center; }
+}
+
 /* 来訪者カウンター（main.js が番号を入れて出す）。番号が届く前から1行ぶんの高さをとって、下がずれないようにする */
 .visitor { margin: 1.8rem 0 0; min-height: 2em; font-size: .76rem; color: var(--ink-mute); letter-spacing: .08em; }
 .visitor-num {

@@ -79,16 +79,30 @@
   var JST = 9 * 60 * 60 * 1000;
   var launchDay = new Date(LAUNCH_AT + JST);
   var LAUNCH_DAY_END = Date.UTC(launchDay.getUTCFullYear(), launchDay.getUTCMonth(), launchDay.getUTCDate() + 1) - JST;
+  // 確かめる用：URL に ?preview=day（before / after）を付けると、その時期の表示にする（launch-plan.md 8.）
+  var PREVIEW = (/[?&]preview=(before|day|after)(?:&|$)/.exec(location.search) || [])[1];
+
+  var exactTimer;
 
   function showLaunchPhase() {
     var t = Date.now();
-    var phase = t < LAUNCH_AT ? "before" : t < LAUNCH_DAY_END ? "day" : "after";
+    var phase = PREVIEW || (t < LAUNCH_AT ? "before" : t < LAUNCH_DAY_END ? "day" : "after");
     document.querySelectorAll("[data-phase]").forEach(function (el) {
       el.hidden = el.getAttribute("data-phase").split(" ").indexOf(phase) < 0;
     });
+    // 1分ごとの確認だけだと、開いたままのページは切り替わりが最大1分遅れる。
+    // 次の切り替わりまで1分を切ったら、その時刻ちょうどにもう一度確かめる（少し早く呼ばれても、ここでまた待ち直す）
+    var next = t < LAUNCH_AT ? LAUNCH_AT : t < LAUNCH_DAY_END ? LAUNCH_DAY_END : 0;
+    clearTimeout(exactTimer);
+    if (!PREVIEW && next && next - t <= 60 * 1000) exactTimer = setTimeout(showLaunchPhase, next - t);
   }
   showLaunchPhase();
   setInterval(showLaunchPhase, 60 * 1000);
+  // 隠れていたタブや眠っていた端末ではタイマーが遅れるので、画面に戻ったとき・戻るボタンで戻ったときにすぐ確かめ直す
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) showLaunchPhase();
+  });
+  window.addEventListener("pageshow", showLaunchPhase);
 
   /* ------------------------------------------------ 来訪者カウンター（トップページ） */
   // countVisitor（firebase/functions/index.js）に1つ数えてもらい、「あなたは○人目の来訪者です」を出す。
