@@ -61,12 +61,14 @@
   <section id="top" class="hero">
     <div class="wrap hero-inner">
       <p class="eyebrow">FAN-MADE / UNOFFICIAL</p>
+      <!-- 正式オープンの当日だけ：活動3周年のお祝いの一行（launch-plan.md 8.） -->
+      <p class="hero-anniv" data-phase="day" hidden>祝・活動3周年 <span>2023.11.14 → 2026.11.14</span></p>
       <h1 class="hero-title">
         <span class="hero-title-sub">声真似配信者</span>
         RyuU
         <span class="hero-title-sub">非公式ファンクラブ</span>
       </h1>
-      <p class="hero-lead">
+      <p class="hero-lead" data-phase="before after">
         心に空条承太郎を宿したオタクを勝手に応援するページ。<br>
         合言葉は <button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button>
       </p>
@@ -74,11 +76,10 @@
       <!-- 星軍基地の正式オープンの告知。main.js が日本時間で「先行オープン中（before）/
            正式オープンの当日（day）/ 翌日から（after）」を切り替え、data-phase に書いた時期だけ表示する。
            JavaScript が動かないときは、hidden の付いていない文（先行オープン中の文）が出る -->
-      <aside class="launch" data-phase="before day" aria-labelledby="launch-title">
+      <aside class="launch" data-phase="before" aria-labelledby="launch-title">
         <p class="launch-date" id="launch-title"><span>2026.11.14</span> SAT 6:00 <strong>星軍基地 正式オープン</strong></p>
-        <p class="launch-text" data-phase="before">RyuU さんの活動開始から、ちょうど3年の日。ファンの交流スペース「星軍基地」が正式オープンします。</p>
-        <p class="launch-text" data-phase="before">参加登録は、ひと足先に受け付けています。</p>
-        <p class="launch-text" data-phase="day" hidden>本日、ファンの交流スペース「星軍基地」が正式オープン！ RyuU さん、活動3周年おめでとうございます。</p>
+        <p class="launch-text">RyuU さんの活動開始から、ちょうど3年の日。ファンの交流スペース「星軍基地」が正式オープンします。</p>
+        <p class="launch-text">参加登録は、ひと足先に受け付けています。</p>
         <p class="launch-note">ファン有志による非公式の企画です。ご本人・公式の企画ではありません。</p>
         <p class="launch-links">
           <a href="#hiroba">基地の案内を見る</a>
@@ -86,8 +87,41 @@
         </p>
       </aside>
 
+      <!-- 正式オープンの当日（11/14 6:00〜24:00）だけの告知（launch-plan.md 8.）。
+           この日の画面で赤く塗ったボタンは「星軍基地でお祝いを書く」の1つだけにする。
+           スマホの最初の画面にそのボタンが入るよう、合言葉の一文はこの下へ回す。
+           13:00 の行は、1週間前に RyuU さんの X で配信の予定を確かめて、変わっていたら直す -->
+      <aside class="launch" data-phase="day" hidden aria-labelledby="launch-today-title">
+        <p class="launch-date" id="launch-today-title"><span>2026.11.14</span> SAT 6:00 <strong>星軍基地 正式オープン</strong></p>
+        <p class="launch-text"><span>本日、ファンの交流スペース</span><span>「星軍基地」が正式オープン！</span><br><span>RyuU さん、</span><span>活動3周年おめでとうございます。</span></p>
+        <div class="launch-cta">
+          <a class="btn btn-primary" href="hiroba.html">星軍基地でお祝いを書く</a>
+          <p class="launch-cta-note"><span>お祝いは「雑談」タグで、</span><span>それぞれ新しい投稿でどうぞ。</span><span>読むだけなら登録はいりません。</span></p>
+        </div>
+        <p class="launch-note">ファン有志による非公式の企画です。ご本人・公式の企画ではありません。</p>
+        <div class="launch-day">
+          <p class="launch-day-title">今日の流れ（日本時間）</p>
+          <ol class="launch-timeline">
+            <li><span class="lt-time">6:00</span><span>星軍基地 正式オープン</span></li>
+            <li><span class="lt-time">13:00</span><span>RyuU さんの定期配信の時間。予定や変更は <a href="https://x.com/RyuU_Movie" target="_blank" rel="noopener">RyuU さんの X</a> で。実況コメントは配信のチャットへ</span></li>
+            <li><span class="lt-time">配信のあと</span><span>感想は基地の「感想」タグで</span></li>
+            <li><span class="lt-time">23:00</span><span>基地の投稿はおやすみ（読むのはいつでも）</span></li>
+          </ol>
+        </div>
+        <p class="launch-links">
+          <a href="#hiroba">基地の案内を見る</a>
+          <!-- 文：「RyuU さんの活動3周年の日に、ファン有志の非公式サイト「ryuu星軍 本部」の交流スペース「星軍基地」が正式オープンしました」。#ryuu星軍 は付けない（launch-plan.md 3.） -->
+          <a href="https://x.com/intent/tweet?text=RyuU%20%E3%81%95%E3%82%93%E3%81%AE%E6%B4%BB%E5%8B%953%E5%91%A8%E5%B9%B4%E3%81%AE%E6%97%A5%E3%81%AB%E3%80%81%E3%83%95%E3%82%A1%E3%83%B3%E6%9C%89%E5%BF%97%E3%81%AE%E9%9D%9E%E5%85%AC%E5%BC%8F%E3%82%B5%E3%82%A4%E3%83%88%E3%80%8Cryuu%E6%98%9F%E8%BB%8D%20%E6%9C%AC%E9%83%A8%E3%80%8D%E3%81%AE%E4%BA%A4%E6%B5%81%E3%82%B9%E3%83%9A%E3%83%BC%E3%82%B9%E3%80%8C%E6%98%9F%E8%BB%8D%E5%9F%BA%E5%9C%B0%E3%80%8D%E3%81%8C%E6%AD%A3%E5%BC%8F%E3%82%AA%E3%83%BC%E3%83%97%E3%83%B3%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F&amp;url=https%3A%2F%2Fchr2808480.github.io%2Fsupporting_ryuu_movie%2F" target="_blank" rel="noopener">このサイトを X で知らせる</a>
+        </p>
+      </aside>
+      <p class="hero-lead" data-phase="day" hidden>
+        心に空条承太郎を宿したオタクを勝手に応援するページ。<br>
+        合言葉は <button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button>
+      </p>
+
       <div class="hero-cta">
-        <a class="btn btn-primary" href="#profile">公式リンクを見る</a>
+        <a class="btn btn-primary" data-phase="before after" href="#profile">公式リンクを見る</a>
+        <a class="btn btn-ghost" data-phase="day" hidden href="#profile">公式リンクを見る</a>
         <a class="btn btn-ghost" href="guide.html">はじめての方へ</a>
       </div>
 
@@ -160,6 +194,7 @@
                 <li><span class="ms-date">2024.09.15</span><span>1,000人</span></li>
                 <li><span class="ms-date">2025.01.12</span><span>5,000人</span></li>
                 <li><span class="ms-date">2025.01.25</span><span>10,000人</span></li>
+                <li class="is-highlight" data-phase="day after" hidden><span class="ms-date">2026.11.14</span><span>活動3周年</span></li>
                 <li class="is-now"><span class="ms-date">now</span><span>絶賛活動中。続きはあなたの目で</span></li>
               </ul>
             </dd>
@@ -212,7 +247,7 @@
       <!-- ===== 星軍基地の案内 ===== -->
       <div class="hiroba-intro" id="hiroba">
         <div class="hiroba-intro-text">
-          <h3 class="mini-title">　星軍基地 <span class="hiroba-badge" data-phase="before">先行オープン中</span><span class="hiroba-badge" data-phase="day after" hidden>オープン中</span></h3>
+          <h3 class="mini-title">　星軍基地 <span class="hiroba-badge" data-phase="before">先行オープン中</span><span class="hiroba-badge" data-phase="day" hidden>本日 正式オープン</span><span class="hiroba-badge" data-phase="after" hidden>オープン中</span></h3>
           <p>配信や動画の感想を、名前を出さずに語り合えるファンの交流スペースです。<button class="tag-copy" data-tag="#ryuu星軍" type="button">#ryuu星軍</button> の代わりではなく、補う場所です。</p>
           <ul class="hiroba-points">
             <li>表示名だけで参加。メールアドレスなどは他の人に見えません</li>

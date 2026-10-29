@@ -79,10 +79,12 @@
   var JST = 9 * 60 * 60 * 1000;
   var launchDay = new Date(LAUNCH_AT + JST);
   var LAUNCH_DAY_END = Date.UTC(launchDay.getUTCFullYear(), launchDay.getUTCMonth(), launchDay.getUTCDate() + 1) - JST;
+  // 確かめる用：URL に ?preview=day（before / after）を付けると、その時期の表示にする（launch-plan.md 8.）
+  var PREVIEW = (/[?&]preview=(before|day|after)(?:&|$)/.exec(location.search) || [])[1];
 
   function showLaunchPhase() {
     var t = Date.now();
-    var phase = t < LAUNCH_AT ? "before" : t < LAUNCH_DAY_END ? "day" : "after";
+    var phase = PREVIEW || (t < LAUNCH_AT ? "before" : t < LAUNCH_DAY_END ? "day" : "after");
     document.querySelectorAll("[data-phase]").forEach(function (el) {
       el.hidden = el.getAttribute("data-phase").split(" ").indexOf(phase) < 0;
     });
