@@ -4,7 +4,7 @@
 更新：**2026-10-17**（運営者の決定を受けて、公開前にできる作業を済ませました。「決まったこと・済んだこと」を見てください）
 更新：**2026-10-22**（運営者の希望で、参加登録の受付を **10月23日（金）6:00** に前倒ししました。11月14日 は正式オープン・活動3周年の日として残します）
 更新：**2026-10-24**（受付開始から1日たっても参加登録が0人なので、登録が通るかの確かめ方と、宣伝の打ち手を「7.」に足しました）
-更新：**2026-10-29**（11/14 当日の本部トップの画面を決め、日付で自動で切り替わるように組み込みました。「8.」）
+更新：**2026-10-29**（11/14 当日と、11/15 からの本部トップの画面を決め、日付で自動で切り替わるように組み込みました。「8.」「9.」）
 
 星軍基地の正式公開を、初日から人が集まり、そのあとも続く形で始めるための計画と、これから足すページの案です。
 公開前の設定・法令の確認は [`launch-checklist.md`](launch-checklist.md) にあります。こちらは「人が来て、また来たくなる」ための計画です。
@@ -326,10 +326,85 @@ FAN-MADE / UNOFFICIAL
 
 | いつ | やること |
 | --- | --- |
-| main に入れたあと〜11/13 | スマホで `https://chr2808480.github.io/supporting_ryuu_movie/?preview=day` を開き、当日の見た目を確かめる（`?preview=after` で翌日からの見た目。付けなければふだんどおり） |
+| main に入れたあと〜11/13 | スマホで `https://chr2808480.github.io/supporting_ryuu_movie/?preview=day` を開き、当日の見た目を確かめる（付けなければふだんどおり。翌日からの見た目は 9-5） |
 | 当日 6:00 過ぎ | トップを開き直して、当日の表示に替わったことを確かめる（`launch-checklist.md` 8b. の1） |
 | 当日 6:00 ごろ | お知らせ欄（`kanri.html`）の文案：「本日 11月14日（土）、星軍基地は正式オープンしました。RyuU さん、活動3周年おめでとうございます！ お祝いは『雑談』タグで、配信の感想は『感想』タグで、それぞれ新しい投稿でどうぞ。運営者の表示名は〇〇です（運営の投稿には『運営』の印が付きます）」 |
 | 配信のあと | お知らせ欄に「今日の配信の感想は『感想』タグで」（3. の当日） |
+
+---
+
+## 9. 11/15 からの本部トップの画面（2026-10-29）
+
+11/15 0:00 から（`data-phase` の after）の表示は、そのままずっと続く、ふだんの本部トップです。
+8. と同じく日付で自動で切り替わり、書き換える作業はいりません。
+
+### 9-1. いまのままだと、11/15 からどう見えるか
+
+告知欄が消え、基地へのボタンは下の「入軍案内」の中の「基地をのぞく」だけになります。
+スマホ（390×664）では上から 3,439px、**約5画面ぶん下**です（パソコン 1366×657 では 2,582px、約4画面ぶん下）。
+
+### 9-2. 11/15 からの画面（スマホ）
+
+```
+ヘッダー（★ ryuu星軍 本部 ／ メニュー）
+FAN-MADE / UNOFFICIAL
+声真似配信者 ／ RyuU ／ 非公式ファンクラブ
+心に空条承太郎を宿したオタクを…  合言葉は #ryuu星軍
+┌ 星軍基地［オープン中］ ─────────     ← 受付開始から当日まで告知があった場所
+│ 配信や動画の感想を、名前を出さずに語り合えるファンの交流スペース。
+│ 読むだけなら登録はいりません。
+│ （ 基地へ行く ）
+│ 基地の案内を見る ／ このサイトを X で知らせる
+└────────────────────
+├‥‥‥‥‥ ここまでが1画面目 ‥‥‥‥‥
+［ 公式リンクを見る ］（ はじめての方へ ）     ← いまと同じ
+あなたは○人目の来訪者です
+RyuUさんとは …（ここから下は、いまと同じ。活動の歩みに「2026.11.14 活動3周年」が入る）
+```
+
+ボタンの下端の位置（Chromium で、ブラウザのバーを除いた見える部分の高さに合わせて測った）：
+
+| 画面 | 見える部分 | 「基地へ行く」 | 「公式リンクを見る」 | （参考）いまの「公式リンクを見る」 |
+| --- | --- | --- | --- | --- |
+| iPhone 13〜16（Safari） | 390×664 | 608px ✓ | 752px（少しスクロール） | 825px |
+| iPhone Pro Max（Safari） | 430×739 | 608px ✓ | 752px（少しスクロール） | 826px |
+| Android（Chrome） | 412×780 | 608px ✓ | 752px ✓ | 825px |
+| iPhone SE（Safari） | 375×548 | 633px（少しスクロール） | 807px（少しスクロール） | 882px |
+| ノート PC | 1366×657 | 588px ✓ | 747px（少しスクロール） | 863px |
+
+「公式リンクを見る」は、いまの表示（受付開始〜11/13）でも1画面目のすぐ下にあり、11/15 からはそれより少し上に来ます。ヘッダーのメニューからも行けます。
+
+### 9-3. 変わる所
+
+| 変わる所 | 中身 | 理由 |
+| --- | --- | --- |
+| 告知欄があった場所 | **星軍基地の入口**をずっと置く（説明・「基地へ行く」・基地の案内・このサイトを X で知らせる） | また来た人が、探さずに基地へ行ける（9-4 の1・2）。読むだけの人にも開いていると伝える（1. の8）。X で知らせるリンクも、告知欄といっしょに消えずに残る（7-3） |
+| ボタンの色 | 「基地へ行く」は枠だけ。「公式リンクを見る」は赤く塗ったまま | 赤く塗るボタンは1つ（8-4 の4）。このサイトのいちばんの役目は、応援を公式へ案内すること（`README.md`） |
+| 活動の歩み | 「2026.11.14 活動3周年」（8. で足したもの） | 5. の B2 |
+| 基地の案内のバッジ | 「オープン中」 | |
+
+変えないもの：ここから下の並び（RyuUさんとは・入軍案内・軍の作法・よくある質問）と、基地のページ。
+
+足さなかったもの：
+
+- **基地の新しい投稿をトップに出す**：基地は検索エンジンに載せない方針（`hiroba.html` の `noindex`）で、トップは載せるページです。表示のたびに Firestore を読むので、費用も増えます
+- **本部の更新履歴**（5. の B4）：書き足し続けないと、かえって止まったサイトに見えます。運営の手が回るようになってから
+
+### 9-4. 根拠
+
+8-4 と同じく、Web 検索で得た要旨から整理しました。
+
+| # | 分かっていること | 根拠 | 確度 | この画面での使い方 |
+| --- | --- | --- | --- | --- |
+| 1 | ウェブで開くページの58%は、前に開いたページを開き直したもの。開き直しの手間を小さくするべき、と著者は述べている | Tauscher & Greenberg 1997（23人・6週間の閲覧の記録） | 🟡 | トップは、また来た人がよく通る。基地への入口を1画面目に置く（8-4 の1） |
+| 2 | メニューを選ぶ時間のモデルで、慣れないうちは目で探し、慣れると探さずに選ぶようになる | Cockburn, Gutwin, Greenberg 2007 | 🟡 | 受付開始から当日まで告知があったのと同じ場所に入口を置き、場所を変えない。ただし、置き場所を変えないことの効き目そのものは要旨からは確かめられていません（推測） |
+
+### 9-5. 運営者がすること
+
+| いつ | やること |
+| --- | --- |
+| main に入れたあと〜11/14 | スマホで `https://chr2808480.github.io/supporting_ryuu_movie/?preview=after` を開き、11/15 からの見た目を確かめる |
+| 11/15 0:00 を過ぎたら | トップを開き直して、「星軍基地［オープン中］」の入口が出ていることを確かめる（翌朝でもよい） |
 
 ---
 
@@ -364,13 +439,15 @@ FAN-MADE / UNOFFICIAL
 - 🆕（7.）Haiyi Zhu, Robert E. Kraut, Aniket Kittur. [The Impact of Membership Overlap on the Survival of Online Communities](https://experts.umn.edu/en/publications/the-impact-of-membership-overlap-on-the-survival-of-online-commun/). CHI 2014: 281–290. doi:10.1145/2556288.2557213
 - 🆕（7.）Sohyeon Hwang, Jeremy Foote. [Why do people participate in small online communities?](https://arxiv.org/abs/2108.04282) Proc. ACM HCI 5(CSCW2): 462, 2021. doi:10.1145/3479606
 
-### 画面の設計（8.。確度は検索結果の要約によるもの）
+### 画面の設計（8.・9.。確度は検索結果の要約によるもの）
 
 - Nielsen Norman Group. [Scrolling and Attention](https://www.nngroup.com/articles/scrolling-and-attention/)（2018 年の改訂。最初の画面に約57%、最初の2画面に約74%）
 - Nielsen Norman Group. [Banner Blindness Revisited: Users Dodge Ads on Mobile and Desktop](https://www.nngroup.com/articles/banner-blindness-old-and-new-findings/)（2018。本文も要旨も開けず、ほかのサイトでの紹介による）
 - 総務省『令和7年版 情報通信白書』[インターネット接続端末](https://www.soumu.go.jp/johotsusintokei/whitepaper/ja/r07/html/nd111110.html)（スマートフォンの利用は2024年に74.4%、2017年にパソコンを逆転）
 - W. E. Hick. On the Rate of Gain of Information. Quarterly Journal of Experimental Psychology 4(1): 11–26, 1952. ／ Ray Hyman. Stimulus Information as a Determinant of Reaction Time. Journal of Experimental Psychology 45(3): 188–196, 1953.（[概要](https://en.wikipedia.org/wiki/Hick%27s_law)）
 - W3C. [Understanding SC 2.2.2: Pause, Stop, Hide](https://www.w3.org/WAI/WCAG22/Understanding/pause-stop-hide) ／ [Understanding SC 2.5.8: Target Size (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum)
+- 🆕（9.）Linda Tauscher, Saul Greenberg. [Revisitation Patterns in World Wide Web Navigation](https://chi1997.acm.org/proceedings/paper/sg.html). CHI 1997.（ページを開くうち58%が開き直し）
+- 🆕（9.）Andy Cockburn, Carl Gutwin, Saul Greenberg. A Predictive Model of Menu Performance. CHI 2007: 627–636. doi:[10.1145/1240624.1240723](https://doi.org/10.1145/1240624.1240723)（慣れないうちは目で探す時間、慣れると選ぶだけの時間〔ヒック・ハイマンの法則〕で表すモデル）
 
 ### Google・YouTube・X（公式。7.）
 
