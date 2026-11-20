@@ -16,8 +16,7 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", "
 const TEST_CONFIG = "window.HB_FIREBASE = " + JSON.stringify({
   config: { apiKey: "fake-api-key", authDomain: PROJECT + ".firebaseapp.com", projectId: PROJECT, appId: "demo" },
   region: "asia-northeast1",
-  useEmulators: true,
-  openAt: Date.parse("2026-10-01T06:00:00+09:00")   // 参加登録の受付開始（functions/.env.demo-hiroba と同じ）
+  useEmulators: true
 }) + ";";
 
 const server = createServer(async (req, res) => {
@@ -241,23 +240,7 @@ try {
   await c2.waitForSelector("#hb-join:not([hidden])");
   await assert.rejects(auth.getUser(pendingUid));
 
-  // 10. 参加登録の受付開始より前は、参加の案内の代わりに開始日時を出し、★からもリンクを送る画面を開かない
-  const soon = await (await browser.newContext()).newPage();
-  soon.on("pageerror", (e) => errors.push(e.message));
-  await soon.route("**/assets/js/hiroba-config.js", (route) => route.fulfill({
-    contentType: "text/javascript",
-    body: TEST_CONFIG.replace(/"openAt":\d+/, '"openAt":' + (Date.now() + 7 * 24 * 3600 * 1000))
-  }));
-  await soon.goto(ORIGIN + "/hiroba.html");
-  await soon.waitForSelector("#hb-join-soon:not([hidden])");
-  assert.match(await soon.textContent("#hb-join-soon"), /参加登録は .+ から受け付けます/);
-  assert.equal(await soon.isVisible('#hb-join [data-open="join"]'), false);
-  assert.equal(await soon.locator('#hb-menu [data-open="join"]').count(), 0);
-  await soon.locator('.hb-post [data-action="star"]').first().click();
-  await expectToast(soon, /から受け付けます/);
-  assert.equal(await soon.evaluate(() => document.getElementById("dlg-join").open), false);
-
-  // 11. 投稿が100件を超えたら「もっと見る」で前の投稿を読む。前の投稿への返信も、返信が300件を超えていても出る
+  // 10. 投稿が100件を超えたら「もっと見る」で前の投稿を読む。前の投稿への返信も、返信が300件を超えていても出る
   const seed = db.batch();
   const base = Date.now() - 24 * 3600 * 1000;
   const ids = [];

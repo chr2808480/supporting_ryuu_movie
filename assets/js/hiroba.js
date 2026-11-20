@@ -11,10 +11,7 @@
     closedFrom: 23,                      // 新規投稿を止める時刻（日本時間）
     closedUntil: 6,                      // 新規投稿を再開する時刻（日本時間）
     replyLimit: 3,                       // 同じ相手とのやりとりの上限
-    replyWindowMs: 24 * 60 * 60 * 1000,  // 上限を数える期間
-    // 参加登録の受付開始（日本時間 2026-10-23 6:00）。functions/index.js の OPEN_AT と同じにする。
-    // テストでは hiroba-config.js の openAt で差し替える
-    openAt: Date.UTC(2026, 9, 22, 21, 0, 0)
+    replyWindowMs: 24 * 60 * 60 * 1000   // 上限を数える期間
   };
 
   var MIN = 60 * 1000, HOUR = 60 * MIN, DAY = 24 * HOUR;
@@ -144,21 +141,9 @@
     return Math.max(0, CONFIG.replyLimit - used);
   }
 
-  /* ------------------------------------------------ 参加登録の受付開始（それまでは読むだけ） */
-  function joinClosed() { return Date.now() < CONFIG.openAt; }
-  function openLabel() {
-    var d = new Date(CONFIG.openAt + JST_OFFSET);
-    return (d.getUTCMonth() + 1) + "月" + d.getUTCDate() + "日（" + "日月火水木金土".charAt(d.getUTCDay()) + "）" +
-      d.getUTCHours() + ":" + String(d.getUTCMinutes()).padStart(2, "0");
-  }
-  function soonText() { return "参加登録は " + openLabel() + " から受け付けます。読むのは、いまでもできます。"; }
-
   /* ================================================ 描画 */
   var statusEl = $("#hb-status");
   var joinBox = $("#hb-join");
-  var joinText = $(".hb-join-text", joinBox);
-  var joinButton = $("[data-open]", joinBox);
-  var joinSoon = $("#hb-join-soon");
   var joinSent = $("#hb-join-sent");
   var form = $("#hb-form");
   var fields = $("#hb-fields");
@@ -203,11 +188,6 @@
   function renderComposer() {
     var ps = postingState();
     joinBox.hidden = !!state.me || state.loading;
-    var closed = joinClosed();
-    joinText.hidden = closed;
-    joinButton.hidden = closed;
-    joinSoon.hidden = !closed;
-    if (closed) joinSoon.textContent = soonText();
     form.hidden = !state.me || state.loading;
     if (!state.me) return;
     $("#hb-me-name").textContent = state.me;
@@ -371,10 +351,6 @@
     var wrap = el("form", { className: "hb-replyform", "data-reply-form": p.id, novalidate: true });
 
     if (!state.me) {
-      if (joinClosed()) {
-        wrap.appendChild(el("p", { className: "hb-limit", text: "返信するには参加登録が必要です。" + soonText() }));
-        return wrap;
-      }
       wrap.appendChild(el("p", { className: "hb-limit", text: "返信するには参加登録が必要です。" }));
       wrap.appendChild(el("div", null, [el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })]));
       return wrap;
@@ -436,10 +412,6 @@
         return;
       }
       menuEl.appendChild(el("p", { className: "hb-menu-note" }, ["参加すると、投稿・返信・", starMark(), "・ミュートができます。"]));
-      if (joinClosed()) {
-        menuEl.appendChild(el("p", { className: "hb-menu-note", text: soonText() }));
-        return;
-      }
       menuEl.appendChild(el("div", { className: "hb-menu-buttons" }, [
         el("button", { type: "button", className: "hb-chip", "data-open": "join", text: "基地に参加する" })
       ]));
@@ -529,9 +501,6 @@
   function profileOnly() { return !!live && live.data.needsProfile; }
 
   function openJoin(message) {
-    // 受付開始より前は、ログイン用リンクを送らない（★・ミュートなどから開こうとしたときも）。
-    // ログイン済みで表示名だけがまだの人（運営者の準備など）は、サーバーが判定する
-    if (joinClosed() && !profileOnly()) { toast(soonText()); return; }
     joinForm.reset();
     stepOne.hidden = false;
     stepTwo.hidden = true;
@@ -924,14 +893,12 @@
     render();
     // 接続先か Firebase の部品が読み込めなかったとき
     if (!setup || typeof window.HBLive !== "function") { showLoadError(); return; }
-    if (typeof setup.openAt === "number") CONFIG.openAt = setup.openAt;
 
     postsEl.textContent = "";
     postsEl.appendChild(el("p", { className: "hb-panel hb-empty", text: "読み込んでいます…" }));
 
     window.HBLive(setup).then(function (backend) {
       live = backend;
-      wasClosed = joinClosed();
       state.loading = false;
       sync();
       render();
@@ -949,15 +916,9 @@
     }).catch(showLoadError);
   }
 
-  var wasClosed = false;   // 参加登録の受付前か（読み込みが済んだときに決める）
   boot();
-  // 受付状態と「○分前」の表示を1分ごとに更新する（投稿一覧は作り直さない）。
-  // 参加登録の受付が始まったら、参加の案内を出し直す（書きかけの返信がある参加者の一覧は作り直さない）
+  // 受付状態と「○分前」の表示を1分ごとに更新する（投稿一覧は作り直さない）
   setInterval(function () {
-    if (live && joinClosed() !== wasClosed) {
-      wasClosed = joinClosed();
-      if (state.me) renderMenu(); else render();
-    }
     renderStatus();
     renderComposer();
     document.querySelectorAll("time.hb-time").forEach(function (t) {

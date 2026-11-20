@@ -41,17 +41,6 @@ test("参加登録：同意・表示名の確認と、表示名の重複", async
   assert.equal(user.email, undefined, "メールアドレスは Firestore に置かない");
 });
 
-test("参加登録：受付開始より前は、運営者のメールアドレスだけが登録できる", async () => {
-  // テストでは受付開始を 2026-10-01 6:00（日本時間）にしている（functions/.env.demo-hiroba）
-  at(Date.UTC(2026, 8, 30, 20, 58, 0));   // 呼ぶたびに1分進むので、受付開始の1分前に呼ぶことになる
-  const a = await signIn("a@example.com");
-  assert.equal(await reasonOf(call("registerProfile", { handle: "流れ星", age16: true, agree: true }, a)), "not-open");
-  const admin = await signIn("admin@example.com");
-  assert.equal((await call("registerProfile", { handle: "見張り番", age16: true, agree: true }, admin)).handle, "見張り番");
-  at(Date.UTC(2026, 8, 30, 21, 0, 0));
-  assert.equal((await call("registerProfile", { handle: "流れ星", age16: true, agree: true }, a)).handle, "流れ星");
-});
-
 test("運営者の投稿・返信：「運営」の印が付き、リンクがあっても確認待ちにせず、返信の上限に数えない", async () => {
   const a = await member("a@example.com", "流れ星");
   const b = await member("b@example.com", "星屑");
