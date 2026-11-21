@@ -47,26 +47,13 @@ python3 -m http.server 8000
 
 1. `research.md` の確度表を見る。⚠️ が付いている項目は必ず本人の導線から確認する。
 2. `index.html` の該当箇所を直す。主な編集ポイントは次のとおり。
-   - プロフィール → `#about` の `.datalist`
-   - 公式リンク → `#links` の `.linkcard`（`href` と `.handle`）
-   - 配信時刻 → `#schedule` の `.schedule-time`、および `assets/js/main.js` の `nextStream()`
-     （**曜日と時刻は 2 か所**にあります。片方だけ直すとカウントダウンがずれます）
+   - プロフィール → `#profile` の `.datalist`
+   - 公式リンク → `#links` の `.link-inline`（各リンクの `href`）
+   - 配信時刻 → `#profile` の「定期配信」の行と、`guide.html` の「いっしょに盛り上がりたい」（**2 か所**にあります）
    - 活動の歩み → `#history` の `.milestones`
    - はじめての方へ・用語集 → `guide.html`（RyuU さんまわりの言葉は `research.md` で裏取りできたものだけ）
-3. `#site` セクションと `research.md` の「最終調査日 / 最終更新」を更新する。
+3. `research.md` の「最終調査日」を更新する。
 4. コミットして push。
-
-### 配信時刻を変更する場合
-
-`assets/js/main.js` のカウントダウンは、端末のタイムゾーンに左右されないよう **UTC** で計算しています。
-
-```js
-Date.UTC(..., 4, 0, 0, 0)  // 04:00 UTC = 13:00 JST
-var delta = (6 - d.getUTCDay() + 7) % 7;  // 6 = 土曜
-```
-
-日本時間から 9 時間引いた値を `Date.UTC` の時に、曜日を `6`（日=0 … 土=6）の位置に入れてください。
-JST の時刻が 9:00 より前の場合は UTC では前日になるため、曜日も 1 つ戻す必要があります。
 
 ## 4. 公開する（GitHub Pages）
 
@@ -77,15 +64,10 @@ JST の時刻が 9:00 より前の場合は UTC では前日になるため、�
 
 独自ドメインを使う場合はリポジトリ直下に `CNAME` ファイルを置き、Pages の設定で指定してください。
 
-### 正式オープンの告知（2026-11-14）
+### 星軍基地の入口
 
-`index.html` の告知（`.launch`）と基地の紹介は、`data-phase` に書いた時期だけ表示されます。
-`assets/js/main.js` の `LAUNCH_AT`（正式オープン）を境に、
-先行オープン中（`before`）・正式オープンの当日（`day`）・翌日から（`after`）が自動で切り替わります。
-正式オープンの日を変えるときは、`LAUNCH_AT` と `index.html` の日付の文字を直してください。
-
-参加登録の受付開始（2026-10-23 6:00。もう始まっています）は、`assets/js/hiroba.js` の `CONFIG.openAt` と `firebase/functions/index.js` の `OPEN_AT` にあります。
-変えるときは両方を同じ日時にして関数をデプロイし、`terms.html`・`privacy.html` の制定日・附則も直してください。
+トップの見出しのすぐ下にある星軍基地の入口（`index.html` の `.base-entry`）は、正式オープン（2026-11-14）までの告知と同じ場所に置いています（`launch-plan.md` 9.）。
+参加登録の受付開始（2026-10-23）と正式オープンに合わせて表示を切り替えていたしくみ（`OPEN_AT`・`CONFIG.openAt`・`LAUNCH_AT`・`data-phase`）は、役目を終えたので 2026-11-20 に外しました。
 
 ### 共有したときの画像（OGP）
 

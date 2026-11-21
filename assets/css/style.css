@@ -81,7 +81,6 @@ code {
 
 .wrap { width: min(var(--wrap), calc(100% - 2rem)); margin-inline: auto; }
 .wrap.narrow { width: min(40rem, calc(100% - 2rem)); }
-.center { text-align: center; }
 
 /* --------------------------------------------------------- starfield bg */
 /* 土台：明るめの黒 ＋ ほんのり赤い光 ＋ 動かない中くらいの星 */
@@ -230,45 +229,11 @@ code {
   display: block; font-size: clamp(.8rem, 2.6vw, 1rem); font-weight: 600;
   letter-spacing: .3em; color: var(--ink-mute); margin: .35rem 0;
 }
-.hero-star {
-  display: inline-block; font-size: .5em; vertical-align: super; color: var(--red);
-  animation: twinkle 2.6s ease-in-out infinite;
-}
-@keyframes twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.85); } }
-
 .hero-lead { margin: 1.6rem auto 0; max-width: 40rem; color: var(--ink-mute); font-size: .98rem; }
 
 .hero-cta { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; margin-top: 2.2rem; }
 
-/* 星軍基地の正式オープンの告知（main.js が時期で出し分ける） */
-.launch {
-  margin: 2rem auto 0; max-width: 40rem; padding: 1.1rem 1.3rem;
-  background: rgba(255,77,94,.08); border: 1px solid rgba(255,77,94,.45);
-  border-radius: var(--radius-lg);
-}
-.launch-date { margin: 0; font-size: .78rem; letter-spacing: .2em; color: var(--red-soft); }
-.launch-date span { font-size: 1.05rem; font-weight: 800; letter-spacing: .08em; color: var(--ink); }
-.launch-date strong { display: block; margin-top: .2rem; font-size: 1.15rem; letter-spacing: .14em; color: var(--red); }
-.launch-text { margin: .6rem 0 0; font-size: .92rem; }
-.launch-note { margin: .4rem 0 0; font-size: .76rem; color: var(--ink-mute); }
-.launch-links { margin: .7rem 0 0; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.2rem; font-size: .84rem; }
-.launch-links a { color: var(--red-soft); }
-
-/* 正式オープンの当日（day）だけ出すもの：3周年の一行、基地へのボタン。
-   当日はヒーローの上の余白を詰めて、基地へのボタンを最初の画面に入れる（:has が使えないブラウザでは詰めないだけ） */
-.hero:has(.hero-anniv:not([hidden])) { padding-top: clamp(2rem, 6vw, 3.5rem); }
-.hero-anniv {
-  display: inline-block; margin: 0 0 .9rem; padding: .1rem .9rem;
-  border: 1px solid rgba(255,77,94,.55); border-radius: 999px;
-  font-size: .82rem; font-weight: 700; letter-spacing: .14em; color: var(--ink);
-}
-.hero-anniv span { margin-left: .4em; font-size: .9em; font-weight: 400; letter-spacing: .06em; color: var(--ink-mute); }
-.launch-cta { margin: 1rem 0 0; display: grid; justify-items: center; gap: .45rem; }
-.launch-cta-note { margin: 0; font-size: .78rem; color: var(--ink-mute); }
-/* 狭い画面で「ございま／す。」のように1〜2文字だけ落ちないよう、意味のまとまり（span）ごとに改行する */
-.launch-text span, .launch-cta-note span, .base-entry-lead span { display: inline-block; }
-
-/* 正式オープンの翌日（after）からずっと出す、星軍基地の入口。告知があったのと同じ場所に置く。
+/* 星軍基地の入口。受付開始から正式オープンの日まで告知があったのと同じ場所に置く。
    広い画面では「説明｜ボタン」の横並び、狭い画面では縦に積んで中央にそろえる */
 .base-entry {
   margin: 2rem auto 0; max-width: 40rem; padding: 1rem 1.3rem;
@@ -279,7 +244,10 @@ code {
 .base-entry-text { flex: 1 1 20rem; }
 .base-entry-title { margin: 0; font-size: 1rem; font-weight: 700; letter-spacing: .12em; color: var(--red-soft); }
 .base-entry-lead { margin: .3rem 0 0; font-size: .86rem; color: var(--ink-mute); }
-.base-entry-links { flex-basis: 100%; margin: 0; }
+/* 狭い画面で「いり／ません。」のように1〜2文字だけ落ちないよう、意味のまとまり（span）ごとに改行する */
+.base-entry-lead span { display: inline-block; }
+.base-entry-links { flex-basis: 100%; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.2rem; font-size: .84rem; }
+.base-entry-links a { color: var(--red-soft); }
 @media (max-width: 560px) {
   .base-entry-text { text-align: center; }
 }
@@ -315,7 +283,6 @@ code {
   transition: background .18s, color .18s;
 }
 .tag-copy:hover { background: rgba(255,77,94,.22); }
-.tag-copy-ico { font-size: .8em; opacity: .7; }
 .tag-copy.is-copied { color: var(--ink); border-color: var(--ink); border-style: solid; background: rgba(247,234,236,.14); }
 
 /* --------------------------------------------------------- sections */
@@ -325,11 +292,6 @@ code {
 .section-title {
   display: flex; align-items: baseline; gap: .8rem;
   margin: 0 0 .8rem; font-size: clamp(1.4rem, 4.4vw, 2rem);
-}
-.section-num {
-  font-size: .72rem; letter-spacing: .25em; color: var(--red);
-  border: 1px solid rgba(255,77,94,.45); border-radius: 999px; padding: .1rem .6rem;
-  flex: none;
 }
 .section-lead { margin: 0 0 2.2rem; color: var(--ink-mute); max-width: 46rem; }
 .mini-title { font-size: 1rem; letter-spacing: .12em; color: var(--red-soft); margin: 0 0 1rem; }
@@ -345,7 +307,6 @@ code {
   transition: transform .2s, border-color .2s;
 }
 .card:hover { transform: translateY(-3px); border-color: rgba(255,77,94,.6); }
-.card-ico { font-size: 1.7rem; line-height: 1; margin-bottom: .6rem; }
 .card h3 { margin: 0 0 .5rem; font-size: 1.05rem; color: var(--red-soft); }
 .card p  { margin: 0; font-size: .9rem; color: var(--ink-mute); }
 
@@ -394,11 +355,6 @@ code {
   object-fit: contain;   /* 縦横比の違うロゴを歪ませずに収める */
   display: block;
 }
-.link-inline .handle {
-  font-size: .74rem; font-weight: 400; color: var(--ink-mute);
-  font-family: ui-monospace, Menlo, monospace;
-}
-.link-inline .li-arrow { font-size: .72rem; color: var(--ink-mute); }
 
 /* -------- プロフィール内：活動の歩み */
 .milestones { list-style: none; margin: .2rem 0 0; padding: 0; display: grid; gap: .35rem; }
@@ -427,12 +383,6 @@ code {
 }
 .notice-title { margin: 0 0 .5rem; font-size: .98rem; color: var(--red-soft); }
 .notice p { margin: 0; font-size: .89rem; color: var(--ink-mute); }
-
-.notice-strong {
-  margin: 0; background: rgba(255,77,94,.1);
-  border-color: rgba(255,77,94,.45); border-left-color: var(--red);
-}
-.notice-strong .notice-title { color: var(--red); }
 
 .notice-spoiler { background: rgba(255,154,163,.07); border-color: rgba(255,154,163,.35); border-left-color: var(--red-soft); }
 .notice-spoiler .notice-title { color: var(--red-soft); }
@@ -494,7 +444,6 @@ code {
 .section-title.is-sm {
   font-size: clamp(1rem, 2.6vw, 1.15rem); gap: .6rem; margin-bottom: .8rem;
 }
-.section-title.is-sm .section-num { font-size: .6rem; padding: .05rem .5rem; letter-spacing: .2em; }
 
 /* --------------------------------------------------------- faq */
 .faq { display: grid; gap: .7rem; }
@@ -558,19 +507,6 @@ code {
 .cf-status.is-ok { color: var(--ink); }
 .cf-status.is-error { color: var(--red); }
 .cf-note { margin: 0; font-size: .74rem; color: var(--ink-mute); }
-
-/* --------------------------------------------------------- about site */
-.about-site { margin: 0; padding-left: 1.2rem; display: grid; gap: .7rem; }
-.about-site li { font-size: .89rem; color: var(--ink-mute); }
-.about-site strong { color: var(--ink); }
-
-/* 小さめ版 */
-.about-site.is-sm {
-  padding: .9rem 1.1rem; list-style: none; gap: .4rem;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-}
-.about-site.is-sm li { font-size: .78rem; line-height: 1.75; }
-.about-site.is-sm strong { color: var(--red-soft); font-weight: 700; }
 
 /* --------------------------------------------------------- footer */
 .site-footer { border-top: 1px solid var(--line); background: var(--bg); padding: 3rem 0 2.2rem; text-align: center; }
