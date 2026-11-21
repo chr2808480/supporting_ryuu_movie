@@ -191,6 +191,7 @@
     form.hidden = !state.me || state.loading;
     if (!state.me) return;
     $("#hb-me-name").textContent = state.me;
+    $("#hb-staff-link").hidden = !state.meStaff;
     fields.disabled = !ps.open;
     closedEl.hidden = ps.open;
     if (!ps.open) closedEl.textContent = CLOSED_TEXT[ps.reason];
@@ -220,8 +221,44 @@
     }
   }
 
+  /* ------------------------------------------------ 運営者が書くリンク（[文字](https://…)） */
+  // 押せるリンクにするのは、運営者の投稿・返信とお知らせ欄だけ。運営の印（byAdmin）もお知らせも
+  // サーバーの関数しか書けないので、利用者が同じ書き方をしても文字のまま出る。
+  // 本文を HTML として入れず <a> を組み立てるので、タグを書いても動かない。https だけを通し、
+  // 文字に隠れた行き先が分かるよう、リンクの後ろにドメインを添える（xn-- の形のまま出し、似た文字のなりすましに気づけるようにする）
+  var LINK_HINT = "運営者は [文字](https://…) と書くと、押せるリンクになります（行き先のドメインも添えて表示します）。";
+  var LINK_RE = /\[([^\[\]\n]{1,100})\]\((https:\/\/(?:[^\s()<>]|\([^\s()<>]*\))+)\)/g;
+
+  function linkTarget(raw) {
+    var u;
+    try { u = new URL(raw); } catch (e) { return null; }
+    // 「https://youtube.com@別のサイト」のように、ユーザー名の部分で行き先をごまかす書き方は通さない
+    if (u.protocol !== "https:" || u.username || u.password || !u.hostname) return null;
+    return u;
+  }
+
+  // 文字と <a>・ドメインの並びを返す（el の子に渡す）。書き方に合わないところは、そのまま文字で残す
+  function linkedText(text) {
+    var out = [], last = 0, m, u;
+    LINK_RE.lastIndex = 0;
+    while ((m = LINK_RE.exec(text))) {
+      if (!(u = linkTarget(m[2]))) continue;
+      if (m.index > last) out.push(text.slice(last, m.index));
+      out.push(el("a", { className: "hb-link", href: u.href, target: "_blank", rel: "noopener noreferrer", text: m[1] }));
+      out.push(el("span", { className: "hb-link-domain", text: "（" + u.hostname.replace(/^www\./, "") + "）" }));
+      last = LINK_RE.lastIndex;
+    }
+    if (last < text.length) out.push(text.slice(last));
+    return out;
+  }
+
+  // 投稿・返信の本文。運営者が書いたものだけリンクにする
+  function bodyText(item) {
+    return el("p", { className: "hb-body" }, item.staff ? linkedText(item.body) : [item.body]);
+  }
+
   function renderBody(p) {
-    var body = el("p", { className: "hb-body", text: p.body });
+    var body = bodyText(p);
     if (!p.spoiler) return body;
     return el("details", { className: "hb-spoiler", "data-id": p.id, open: !!state.openSpoilers[p.id] }, [
       el("summary", { text: "ネタバレを含む投稿です（開くと表示）" }),
@@ -342,7 +379,7 @@
         el("time", { className: "hb-time", datetime: new Date(r.at).toISOString(), text: timeLabel(r.at) })
       ]),
       r.held ? el("p", { className: "hb-hold", text: "運営の確認待ち（あなたにだけ表示）：リンクを含む返信は、運営が確認してから公開されます。" }) : null,
-      el("p", { className: "hb-body", text: r.body }),
+      bodyText(r),
       actions
     ]);
   }
@@ -370,6 +407,7 @@
     var ta = el("textarea", { className: "hb-textarea", name: "reply", rows: 3, maxlength: 500, "aria-label": p.author + " さんへの返信", disabled: blocked });
     wrap.appendChild(ta);
     wrap.appendChild(el("p", { className: "hb-public", text: "この返信は誰でも見られます。" }));
+    if (state.meStaff) wrap.appendChild(el("p", { className: "hb-hint", text: LINK_HINT }));
     wrap.appendChild(el("div", { className: "hb-replyform-foot" }, [
       el("p", { className: "hb-limit" + (left === 0 ? " is-over" : ""), text: limitText }),
       el("button", { type: "submit", className: "btn btn-primary hb-btn", disabled: blocked, text: "返信する" })
@@ -385,6 +423,7 @@
     var ta = el("textarea", { className: "hb-textarea", id: "edit-" + p.id, name: "body", rows: 4, maxlength: 1000 });
     ta.value = p.body;
     f.appendChild(ta);
+    if (p.staff) f.appendChild(el("p", { className: "hb-hint", text: LINK_HINT }));
     f.appendChild(el("p", { className: "cf-status is-error", role: "status" }));
     f.appendChild(el("div", { className: "hb-replyform-foot" }, [
       el("button", { type: "button", className: "hb-chip", "data-action": "cancel-edit", "data-id": p.id, text: "やめる" }),
@@ -879,7 +918,7 @@
     var list = $(".hb-news-list");
     if (!list) return;
     list.textContent = "";
-    state.site.news.forEach(function (n) { list.appendChild(el("li", { text: n })); });
+    state.site.news.forEach(function (n) { list.appendChild(el("li", null, linkedText(n))); });
     list.appendChild(el("li", { text: "毎日23:00〜6:00（日本時間）は新規投稿をお休みします。" }));
   }
 

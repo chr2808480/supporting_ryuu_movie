@@ -52,8 +52,9 @@
         <form class="hb-panel kn-form" id="kn-site">
           <label class="hb-check"><input type="checkbox" name="absent"> 運営者不在（新規投稿をお休みにする）</label>
           <div class="cf-field">
-            <label for="kn-news">お知らせ（1行に1件・5件まで）</label>
-            <textarea class="hb-textarea" id="kn-news" name="news" rows="4"></textarea>
+            <label for="kn-news">お知らせ（1行に1件・5件まで・1件200文字まで）</label>
+            <textarea class="hb-textarea" id="kn-news" name="news" rows="4" aria-describedby="kn-news-hint"></textarea>
+            <p class="kn-meta" id="kn-news-hint">[文字](https://…) と書くと、押せるリンクになります（例：[公式YouTube](https://www.youtube.com/@RyuU-movie)）。リンクの後ろに、行き先のドメインを添えて表示します。https のリンクだけ使えます。</p>
           </div>
           <button class="btn btn-primary hb-btn" type="submit">保存する</button>
         </form>
