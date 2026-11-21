@@ -182,16 +182,69 @@ try {
   await h.click('#join-form button[type="submit"]');
   await expectToast(h, /参加登録が済みました/);
   await h.check('input[name="tag"][value="雑談"]');
-  await h.fill("#hb-body", "星軍基地へようこそ。案内は https://example.com/guide.html");
+  assert.equal(await h.isVisible("#hb-staff-link"), true);   // 運営者にだけ、リンクの書き方の案内が出る
+  await h.fill("#hb-body", "星軍基地へようこそ。[はじめての方へ](https://www.example.com/guide.html)を読んでね。"
+    + "[だめ](javascript:alert(1)) <b>太字</b>");
   await h.click('#hb-form button[type="submit"]');
   await expectToast(h, /投稿しました ★/);
   await b.reload();
+  assert.equal(await b.isVisible("#hb-staff-link"), false);
   const welcome = b.locator(".hb-post", { hasText: "星軍基地へようこそ" });
   await welcome.waitFor();
   assert.equal(await welcome.locator(".hb-post-head .hb-staff").textContent(), "運営");
+  // 運営者の [文字](https://…) は押せるリンクになり、後ろに行き先のドメインが付く。https 以外とタグは文字のまま
+  const staffLink = welcome.locator(".hb-body a");
+  assert.equal(await staffLink.count(), 1);
+  assert.equal(await staffLink.textContent(), "はじめての方へ");
+  assert.equal(await staffLink.getAttribute("href"), "https://www.example.com/guide.html");
+  assert.equal(await staffLink.getAttribute("target"), "_blank");
+  assert.equal(await staffLink.getAttribute("rel"), "noopener noreferrer");
+  assert.equal(await welcome.locator(".hb-link-domain").textContent(), "（example.com）");
+  assert.equal(await welcome.locator(".hb-body").textContent(),
+    "星軍基地へようこそ。はじめての方へ（example.com）を読んでね。[だめ](javascript:alert(1)) <b>太字</b>");
+  assert.equal(await welcome.locator(".hb-body b").count(), 0);
   await welcome.locator('[data-action="reply"]').click();
   assert.match(await welcome.locator(".hb-limit").textContent(), /上限はありません/);
   await welcome.locator('[data-action="reply"]').click();
+
+  // 運営者の返信もリンクになる。利用者が同じ書き方をしても、文字のまま（確認待ちになる）
+  await h.waitForTimeout(21000);   // 連投の間隔（20秒）
+  await h.reload();
+  const hWelcome = h.locator(".hb-post", { hasText: "星軍基地へようこそ" });
+  await hWelcome.locator('[data-action="reply"]').click();
+  assert.equal(await hWelcome.locator(".hb-replyform .hb-hint").count(), 1);
+  await hWelcome.locator('textarea[name="reply"]').fill("こちらも：[公式YouTube](https://www.youtube.com/@RyuU-movie)");
+  await hWelcome.locator('.hb-replyform button[type="submit"]').click();
+  await expectToast(h, /^返信しました$/);
+  await b.reload();
+  const staffReply = b.locator(".hb-reply", { hasText: "こちらも" });
+  await staffReply.waitFor();
+  assert.equal(await staffReply.locator(".hb-body a").getAttribute("href"), "https://www.youtube.com/@RyuU-movie");
+  assert.equal(await staffReply.locator(".hb-link-domain").textContent(), "（youtube.com）");
+  const bWelcome = b.locator(".hb-post", { hasText: "星軍基地へようこそ" });
+  await bWelcome.locator('[data-action="reply"]').click();
+  assert.equal(await bWelcome.locator(".hb-replyform .hb-hint").count(), 0);
+  await bWelcome.locator('textarea[name="reply"]').fill("見ました [ここ](https://example.com/x)");
+  await bWelcome.locator('.hb-replyform button[type="submit"]').click();
+  await expectToast(b, /運営の確認後/);
+  const heldReply = b.locator(".hb-reply", { hasText: "見ました" });
+  await heldReply.waitFor();
+  assert.equal(await heldReply.locator(".hb-body a").count(), 0);
+  assert.equal(await heldReply.locator(".hb-body").textContent(), "見ました [ここ](https://example.com/x)");
+
+  // お知らせ欄（kanri.html で書く）もリンクになる。ユーザー名の部分で行き先をごまかす書き方は文字のまま
+  await k.fill("#kn-news", "受付中です。[はじめての方へ](https://example.com/guide.html) [ごまかし](https://example.com@evil.example/)\nリンクなしのお知らせ");
+  await k.click('#kn-site button[type="submit"]');
+  await expectToast(k, /保存しました/);
+  await b.reload();
+  await b.waitForSelector(".hb-news-list a");
+  assert.equal(await b.getAttribute(".hb-news-list a", "href"), "https://example.com/guide.html");
+  assert.deepEqual(await b.locator(".hb-news-list li").allTextContents(), [
+    "受付中です。はじめての方へ（example.com） [ごまかし](https://example.com@evil.example/)", "リンクなしのお知らせ", "毎日23:00〜6:00（日本時間）は新規投稿をお休みします。"
+  ]);
+  await k.fill("#kn-news", "");
+  await k.click('#kn-site button[type="submit"]');
+  await expectToast(k, /保存しました/);
   assert.equal(await b.locator('.hb-post:has-text("おすすめ https://example.com/video") .hb-staff').count(), 0);
 
   // 公開された投稿は別の人にも見え、非表示にした投稿は見えない。処置は本人のメニューに出る
